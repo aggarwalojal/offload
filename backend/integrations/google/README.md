@@ -158,3 +158,34 @@ session. Like OAuth, these network methods are synchronous.
 Calendar references: [event listing](https://developers.google.com/workspace/calendar/api/v3/reference/events/list),
 [event creation](https://developers.google.com/workspace/calendar/api/guides/create-events),
 [conditional writes](https://developers.google.com/workspace/calendar/api/guides/version-resources).
+
+## Availability and slot suggestion service
+
+`availability.py` provides `TimeSlot`, `Conflict`, `AvailabilityReport`, and
+`GoogleAvailabilityService` to check calendar availability, detect conflicts,
+and suggest open time slots.
+
+```python
+from datetime import datetime, timedelta, timezone
+from backend.integrations.google.availability import (
+    GoogleAvailabilityService, TimeSlot,
+)
+
+availability = GoogleAvailabilityService(calendar)
+
+target_slot = TimeSlot(
+    start_time=datetime(2026, 10, 18, 14, 0, tzinfo=timezone.utc),
+    end_time=datetime(2026, 10, 18, 16, 0, tzinfo=timezone.utc),
+)
+
+report = availability.check_availability(
+    target_slot=target_slot,
+    suggest_alternatives=True,
+    limit=3,
+)
+
+if not report.is_available:
+    print(f"Conflicts found: {[c.title for c in report.conflicts]}")
+    print(f"Suggested alternative slots: {report.suggested_slots}")
+```
+
