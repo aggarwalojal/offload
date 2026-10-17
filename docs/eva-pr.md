@@ -8,7 +8,10 @@ persisting them and composing confirmations. Its proposed contract is documented
 Jia/Ojal; Gemini and Google integrations remain in their teammates' components.
 WhatsApp sends require opt-in and enforce session/template restrictions.
 
-Validation: automated Python tests plus a disposable PostgreSQL migration/security
-test cover webhook signatures, ownership, duplicates, rollback, analytics overlaps,
-DST and uncertain delivery. See `docs/eva-integration.md` for setup and live smoke tests.
-Live Twilio/Supabase credentials and agreement on the AI contract are still required.
+Validation: 103 automated tests, including disposable PostgreSQL migration/security
+checks, cover webhook signatures, ownership, duplicates, rollback, analytics overlaps,
+DST, briefing/recap scheduling and uncertain delivery. A real classic Sandbox message
+was persisted to hosted Supabase and answered by the worker; Twilio reported the reply
+as read. Local credentials are excluded from Git. See `docs/eva-integration.md` for
+setup and API contracts. Team agreement on the AI contract and integrated Google/AI
+testing remain; real-phone scheduled briefing/recap delivery has not been checked.

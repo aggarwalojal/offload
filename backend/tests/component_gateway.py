@@ -29,7 +29,7 @@ class Gateway:
     def __init__(self, db, settings):
         self.db, self.settings = db, settings
         self.mode = "success"
-        self.calls, self.sent = [], []
+        self.calls, self.sent, self.history = [], [], []
 
     def rows(self, table):
         assert table in self.tables
@@ -73,13 +73,13 @@ class Gateway:
             assert table in self.tables
             conditions = []
             for key,value in request.url.params.items():
-                if key in {"id","user_id","whatsapp_opt_in"}:
+                if key in {"id","user_id","whatsapp_opt_in","status"}:
                     assert value.startswith("eq.")
                     conditions.append(f"{key}={literal(value[3:])}")
             where = " where "+" and ".join(conditions) if conditions else ""
             if request.method == "PATCH":
                 values = json.loads(request.content)
-                assert all(key in {"status","error_code","twilio_sid"} for key in values)
+                assert all(key in {"status","error_code","twilio_sid","created_at"} for key in values)
                 assignments = ",".join(f"{key}={literal(value)}" for key,value in values.items())
                 self.db.sql(f"set role service_role; update public.{table} set {assignments}{where}")
                 return httpx.Response(204)
@@ -107,6 +107,8 @@ class Gateway:
             return httpx.Response(200,json={"actions":actions,"reply":"untrusted provider prose"})
         if request.url.host == "api.twilio.com":
             assert request.headers["authorization"].startswith("Basic ")
+            if request.method == "GET":
+                return httpx.Response(200,json={"messages":self.history,"next_page_uri":None})
             self.sent.append(httpx.QueryParams(request.content.decode()))
             return httpx.Response(201,json={"sid":"SM"+f"{len(self.sent):032x}"})
         raise AssertionError(f"Unexpected external request: {request.url.host}")

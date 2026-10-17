@@ -132,3 +132,26 @@ async def test_fall_back_repeated_local_minute_enqueues_once(component):
     await enqueue_briefings(c.repo,datetime(2026,11,1,6,30,tzinfo=timezone.utc))
     assert len(c.gateway.rows("whatsapp_outbox")) == 1
     assert c.gateway.rows("whatsapp_outbox")[0]["dedupe_key"] == f"morning:{USER_ID}:2026-11-01"
+
+
+async def test_demo_poll_to_real_database_and_existing_worker(component):
+    from email.utils import format_datetime
+    from backend.integrations.twilio.demo_poll import InboundPoller, NoDemoReplies
+    c = component
+    now = datetime.now(timezone.utc).replace(microsecond=0)
+    c.gateway.history = [{"sid":"SM"+"d"*32,"account_sid":c.settings.twilio_account_sid,
+        "direction":"inbound","to":c.settings.twilio_whatsapp_from,"from":"whatsapp:+15551234567",
+        "body":"Study Java 10 AM to noon","date_created":format_datetime(now)}]
+    poller = InboundPoller(c.bridge.client,c.repo,c.settings,now)
+    await poller.poll_once()
+    await poller.poll_once()
+    await process_inbox(c.repo,c.bridge)
+    await process_outbox(c.repo,NoDemoReplies())
+    await poller.poll_once()
+    await process_inbox(c.repo,c.bridge)
+    assert len(c.gateway.rows("whatsapp_inbox")) == 1
+    assert c.gateway.rows("whatsapp_inbox")[0]["status"] == "completed"
+    assert len(c.gateway.rows("time_entries")) == len(c.gateway.rows("tasks")) == 1
+    assert len(c.gateway.rows("agent_actions")) == 2
+    assert c.gateway.rows("whatsapp_outbox")[0]["error_code"] == "demo_replies_disabled"
+    assert not c.gateway.sent

@@ -72,6 +72,14 @@ setup steps; the repository cannot provision them without account access. Sandbo
 users must join first, and its available templates are restricted. Check the account's
 Sandbox rules before enabling automatic notifications outside an active session.
 
+**New trial interface:** The newer `Try out WhatsApp` flow differs from the classic
+Sandbox. Some accounts show only Connect/Logs and do not expose the webhook controls
+described in Twilio's documentation. Do not assume those controls are available or
+that an upgrade will solve it without account-specific confirmation. For the
+hackathon, [an optional polling demo](hackathon-whatsapp-demo.md) can read inbound
+history if that API is available to the account. Its custom replies are disabled
+by default because the newer trial restricts API sends to provided templates.
+
 ## Supabase setup
 
 1. Create a Supabase project and run `backend/db/migrations/001_whatsapp_database.sql`
@@ -118,6 +126,30 @@ Both AI requests use `Authorization: Bearer AI_SERVICE_TOKEN` and
 `Idempotency-Key: <Twilio MessageSid>`. The internal service must authenticate that
 credential and enforce tenant ownership. Do not expose its token in the frontend.
 
+### Compatibility with current teammate branches
+
+Review of `origin/ai-agent` at `b29bec3` found that Jia's parser returns
+`activities/whatsapp_reply` and its executor returns `results/success/whatsapp_reply`.
+Eva's adapter now accepts these shapes as well as the `actions/reply` contract below.
+It sends `current_time` alongside `reference_time` for the current parser, maps the
+response activities into the same strict model, honors top-level clarification, and
+uses `activities` in the execution request when that response format is detected.
+Known parser metadata (`duration_minutes`, `clarification_needed`) is not passed
+through as an approved action; event duration derives from validated timestamps.
+
+Jia's checked-in `/api/execute` is still a placeholder that returns the proposed
+activities unchanged with a success message. Eva rejects these nonterminal results
+and never announces a successful Google write from that prose. The endpoint still
+needs real Google service calls, terminal outcomes with external IDs, authentication,
+tenant ownership checks and durable idempotency. Sending a bearer header from Eva
+does not itself enforce those requirements in Jia's service.
+
+The Google branch at `2b951c4` supplies OAuth, Calendar, availability, Tasks and
+activity transformer modules for this wiring. The frontend branch at `8c8e6ad`
+still imports sample data rather than these dashboard APIs. These are handoff items,
+not functionality verified by Eva's independent tests. Teammates' files were read
+from Git for this review and have not been merged or changed on this branch.
+
 `POST /api/parse`:
 
 ```json
@@ -126,6 +158,7 @@ credential and enforce tenant ownership. Do not expose its token in the frontend
   "message_id": "SM0123456789abcdef0123456789abcdef",
   "timezone": "America/New_York",
   "reference_time": "2026-10-17T20:00:00+00:00",
+  "current_time": "2026-10-17T20:00:00+00:00",
   "message": "Schedule Java study tomorrow from 7 to 9 PM"
 }
 ```

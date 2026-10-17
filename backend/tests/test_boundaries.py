@@ -205,3 +205,39 @@ async def test_owned_http_client_closes_on_lifespan_failure(settings,monkeypatch
         async with app.router.lifespan_context(app):
             raise RuntimeError("test interruption")
     client.aclose.assert_awaited_once()
+
+
+@pytest.mark.parametrize("execution",["real_outcome","placeholder","clarification"])
+async def test_jia_branch_contract_and_placeholder_guard(settings,user,execution):
+    import json
+    settings.ai_base_url,settings.ai_service_token = "https://ai.test",SecretStr("internal")
+    activity = event(status="proposed",external_id=None)
+    calls = []
+    def respond(request):
+        calls.append(request.url.path)
+        data = json.loads(request.content)
+        if request.url.path.endswith("parse"):
+            assert data["current_time"] == "2026-10-17T12:00:00Z"
+            return httpx.Response(200,json={"original_message":"Study","summary":"Study",
+                "activities":[{**activity,"duration_minutes":120,"clarification_needed":None}],
+                "whatsapp_reply":"Study plan", "needs_clarification":execution=="clarification",
+                "clarification_prompt":"Confirm the time" if execution=="clarification" else None})
+        assert "activities" in data and "actions" not in data
+        outcome = {**activity,"status":"completed","external_id":"google-real-id"} if execution=="real_outcome" else activity
+        return httpx.Response(200,json={"results":[{**outcome,"duration_minutes":120,"clarification_needed":None}],
+                                        "success":True,"whatsapp_reply":"Synced activities to Google Workspace."})
+    async with httpx.AsyncClient(transport=httpx.MockTransport(respond)) as client:
+        bridge = AIBridge(client,settings)
+        message = {"id":"SM1","body":"Study","created_at":"2026-10-17T12:00:00Z"}
+        if execution=="placeholder":
+            with pytest.raises(ValueError,match="terminal outcomes"):
+                await bridge.process(user,message)
+        else:
+            plan = await bridge.process(user,message)
+            if execution=="clarification":
+                assert calls==["/api/parse"]
+                assert plan.actions[0].status=="needs_clarification"
+                assert "Confirm the time" in plan.reply
+            else:
+                assert plan.actions[0].external_id=="google-real-id"
+                assert plan.reply=="Added: Study"

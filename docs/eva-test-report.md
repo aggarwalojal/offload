@@ -2,7 +2,12 @@
 
 Verified October 17, 2026 on `whatsapp-database` using Python 3.13 and PostgreSQL 15.
 
-**Result: 83 tests passed, none failed or skipped.** Runtime was about 4 seconds.
+**Current result: 103 tests passed, none failed or skipped.** Runtime was about 4.6 seconds.
+The original 83 checks are joined by 17 optional polling-demo checks, including
+provider pagination, account/direction filtering, repeat-STOP deduplication,
+database retry, read-only access checks and a real-SQL worker integration scenario.
+Three further cases cover Jia's current activities/results contract, top-level
+clarification and rejection of the current executor's placeholder success response.
 `python -m pip check` also passed with no broken requirements.
 
 ## What was exercised
@@ -77,11 +82,33 @@ API, Supabase Auth and Supabase's PostgREST interface. Its PostgREST stand-in fo
 the actual queries and RPC calls to disposable PostgreSQL under `service_role`.
 It is not a complete emulation or verification of hosted PostgREST.
 
-No real WhatsApp message or Google event was sent/created. Hosted Supabase Auth,
-Realtime delivery, WhatsApp Sandbox membership/template approval, Google OAuth,
-Gemini interpretation and the teammates' final API compatibility still need the
-live smoke test in [the setup guide](eva-integration.md). A Twilio accepted SID is
-not proof of delivery to a phone.
+The automated suite sends no real WhatsApp messages and creates no Google events.
+Separately, the real classic Sandbox webhook was configured and a message was
+received, persisted to hosted Supabase, processed by the worker and answered with
+the app's AI-not-connected reply. Twilio reported that outgoing message as `read`.
+All six hosted tables were accessible and the Trust Hub profile was approved.
+
+Morning briefing and evening recap behavior is covered by automated tests; those
+two scheduled messages have not been manually verified on the real phone. This
+does not block handing the component to the team for integration. Hosted user Auth,
+Realtime delivery, out-of-window template delivery, Google OAuth, Gemini interpretation
+and final teammate API compatibility still need the integrated live smoke test in
+[the setup guide](eva-integration.md).
 
 The only pytest warning was an installed Starlette TestClient deprecation notice
 about its httpx integration; it did not affect results.
+
+The final review also checked the remote AI, Google and frontend branch interfaces.
+Their remaining execution/authentication and live-data wiring are documented in the
+integration guide. Independent passing tests do not establish that the team's
+unmerged application works end to end. Python compilation and dependency checks pass.
+
+## Optional hackathon transport
+
+[The polling demo](hackathon-whatsapp-demo.md) uses authenticated Twilio message
+history when the account's trial UI does not expose webhook configuration. Its
+tests simulate Twilio HTTP responses and run the real repository/worker/SQL path.
+The newer trial environment's inbound history remains unverified. Real credentials
+are now configured locally and authenticated Twilio read access succeeded. No real
+messages were processed or sent by this demo runner. The classic Sandbox webhook
+is now working, so the polling fallback is unnecessary for the team's normal flow.
