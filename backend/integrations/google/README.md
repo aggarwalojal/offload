@@ -189,3 +189,64 @@ if not report.is_available:
     print(f"Suggested alternative slots: {report.suggested_slots}")
 ```
 
+## Google Tasks service
+
+`tasks.py` provides `TaskInput`, `TaskAction`, `TaskResult`, and `GoogleTasksService`.
+Enable Tasks scopes with `GOOGLE_ENABLE_TASKS=true`.
+
+```python
+from datetime import date
+from backend.integrations.google.tasks import (
+    GoogleTasksService, TaskAction, TaskInput,
+)
+
+tasks_service = GoogleTasksService(
+    user_id=current_user.id,
+    credentials=credentials,
+    oauth=oauth_service,
+)
+
+action = TaskAction(
+    action_id="task-apply-ibm",
+    user_id=current_user.id,
+    operation="create",
+    approved=True,
+    task=TaskInput(
+        title="Submit IBM Internship Application",
+        category="career",
+        due=date(2026, 10, 19),
+    ),
+)
+
+result = tasks_service.execute(action)
+print(f"Created task ID: {result.external_id}")
+```
+
+## Activity transformers and execution schemas
+
+`schemas.py` bridges AI activity plans (from Jia's parser) to approved Google actions:
+
+```python
+from backend.integrations.google.schemas import (
+    build_calendar_action_from_activity,
+    build_task_action_from_activity,
+    GoogleExecutionResult,
+)
+
+# Convert activity JSON into validated actions
+calendar_action = build_calendar_action_from_activity(
+    activity=event_dict,
+    user_id=current_user.id,
+    approved=True,
+)
+cal_result = calendar.execute(calendar_action)
+
+task_action = build_task_action_from_activity(
+    activity=task_dict,
+    user_id=current_user.id,
+    approved=True,
+)
+task_result = tasks_service.execute(task_action)
+```
+
+
