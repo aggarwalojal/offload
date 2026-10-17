@@ -1,8 +1,14 @@
 # TimeSlice Google integration
 
-Implemented: environment configuration, an OAuth service for a single backend
-process, and a Google Calendar service. No HTTP routes, persistent token storage,
-availability planning, or Google Tasks operations are implemented yet.
+Implemented: configuration, OAuth, Calendar operations, availability checking,
+Google Tasks, integration schemas, and mountable Calendar connection routes.
+A local-only FastAPI demo can connect a real Google account and read events.
+Production authentication, persistent token storage, and deployed dashboard
+wiring still require the shared backend.
+
+**Public multi-user setup: [PUBLIC_SETUP.md](PUBLIC_SETUP.md).**
+
+**Local test setup: [Connect your real Calendar locally](CONNECT.md).**
 
 ## Install and test
 
@@ -10,7 +16,7 @@ From the repository root (Python 3.10+):
 
 ```sh
 python3 -m venv /tmp/timeslice-google-venv
-/tmp/timeslice-google-venv/bin/python -m pip install -r backend/integrations/google/requirements.txt
+/tmp/timeslice-google-venv/bin/python -m pip install -r backend/integrations/google/requirements-dev.txt
 /tmp/timeslice-google-venv/bin/python -m unittest discover -s backend/integrations/google/tests -v
 ```
 
@@ -43,7 +49,7 @@ from backend.integrations.google.oauth import GoogleOAuthService
 service = GoogleOAuthService(get_google_config())
 ```
 
-The upcoming authenticated authorization route should call:
+The mountable authorization route calls:
 
 ```python
 url = service.begin_authorization(
@@ -72,7 +78,7 @@ placeholders for the team's authenticated backend routes, not provided globals.
 Never identify the user from a callback query parameter. Parse callback parameters
 as single values and reject duplicates in the HTTP layer. Use a secure, HttpOnly,
 SameSite=Lax session cookie (Secure in production) so the browser session survives
-Google's redirect. The callback route does not exist yet.
+Google's redirect. See `routes.py` for the implemented callback and `demo_app.py` for a local browser session.
 
 Before subsequent Google API calls, load credentials from that user's protected
 record, call `service.refresh_credentials(credentials)`, and persist the returned

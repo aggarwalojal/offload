@@ -1,2 +1,6 @@
 google-auth-oauthlib>=1.2.2,<2
 google-auth[requests]>=2.38,<3
+fastapi>=0.115,<1
+uvicorn>=0.34,<1
+python-dotenv>=1,<2
+cryptography>=44,<51
