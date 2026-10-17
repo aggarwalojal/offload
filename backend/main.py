@@ -18,11 +18,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.schemas import (
     ParseRequest,
     ParseResponse,
-    ExecuteRequest,
-    ExecuteResponse,
 )
 from backend.ai.parser import parse_brain_dump
 from backend.ai.planner import validate_and_plan
+from backend.integrations.google.execution import create_execution_router
 
 app = FastAPI(
     title="TimeSlice AI Agent API",
@@ -73,18 +72,7 @@ def parse_message(request: ParseRequest):
         raise HTTPException(status_code=500, detail=f"AI Parsing failed: {str(e)}")
 
 
-@app.post("/api/execute", response_model=ExecuteResponse)
-def execute_plan(request: ExecuteRequest):
-    """
-    Execution endpoint:
-    Handoff to Google Calendar / Google Tasks integration.
-    """
-    # Placeholder for Ojal's Google Workspace integration
-    return ExecuteResponse(
-        results=request.activities,
-        success=True,
-        whatsapp_reply="Synced activities to Google Workspace.",
-    )
+app.include_router(create_execution_router())
 
 
 if __name__ == "__main__":

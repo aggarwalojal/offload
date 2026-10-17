@@ -164,3 +164,42 @@ class EncryptedStorageTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class SeparateServicesTests(PublicAPITests):
+    def setUp(self):
+        super().setUp()
+        from dataclasses import replace
+        self.settings = replace(self.settings, google=replace(self.settings.google, enable_tasks=True))
+        self.client.close()
+        self.client = TestClient(create_public_app(self.settings))
+
+    def test_tasks_only_connection_has_independent_status(self):
+        from backend.integrations.google.config import TASKS_SCOPES
+        self.gateway.load.return_value = {'google_sub': 'google-one', 'credentials': {'scopes': list(TASKS_SCOPES)}}
+        data = self.client.get('/api/google/connection', headers=self.headers).json()
+        self.assertFalse(data['connected'])
+        self.assertTrue(data['tasks_connected'])
+
+    def test_calendar_only_connection_has_independent_status(self):
+        from backend.integrations.google.config import CALENDAR_SCOPES
+        self.gateway.load.return_value = {'google_sub': 'google-one', 'credentials': {'scopes': list(CALENDAR_SCOPES)}}
+        data = self.client.get('/api/google/connection', headers=self.headers).json()
+        self.assertTrue(data['calendar_connected'])
+        self.assertFalse(data['tasks_connected'])
+
+    def test_tasks_can_connect_without_calendar(self):
+        from backend.integrations.google.config import TASKS_SCOPES
+        with self.google(scopes=TASKS_SCOPES):
+            response = self.client.put('/api/google/connection', headers=self.headers,
+                json={'service': 'tasks', 'access_token': 'access', 'refresh_token': 'refresh'})
+        self.assertEqual(response.status_code, 200)
+
+    def test_adding_tasks_cannot_discard_calendar_grant(self):
+        from backend.integrations.google.config import CALENDAR_SCOPES, TASKS_SCOPES
+        self.gateway.load.return_value = {'google_sub': 'google-one', 'credentials': {'scopes': list(CALENDAR_SCOPES)}}
+        with self.google(scopes=TASKS_SCOPES):
+            response = self.client.put('/api/google/connection', headers=self.headers,
+                json={'service': 'tasks', 'access_token': 'access', 'refresh_token': 'refresh'})
+        self.assertEqual(response.status_code, 409)
+        self.gateway.save.assert_not_called()

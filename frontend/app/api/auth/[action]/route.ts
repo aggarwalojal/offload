@@ -5,7 +5,8 @@ import { authClient, authConfig, calendarBackend, clearSession, saveSession, ver
 
 type Context = { params: Promise<{ action: string }> };
 const privateHeaders = { 'Cache-Control': 'no-store, private', 'Referrer-Policy': 'no-referrer' };
-const calendarScopes = 'openid email https://www.googleapis.com/auth/calendar.events.owned https://www.googleapis.com/auth/calendar.freebusy';
+const calendarScopes = 'https://www.googleapis.com/auth/calendar.events.owned https://www.googleapis.com/auth/calendar.freebusy';
+const tasksScope = 'https://www.googleapis.com/auth/tasks';
 
 export async function GET(request: NextRequest, { params }: Context) {
   const { action } = await params;
@@ -35,15 +36,22 @@ export async function GET(request: NextRequest, { params }: Context) {
     },
   });
   if (action === 'login') {
+    const service = request.nextUrl.searchParams.get('service') ?? 'calendar';
+    if (!['calendar', 'tasks'].includes(service)) return new NextResponse('Invalid service', { status: 400 });
+    if (service === 'tasks' && process.env.GOOGLE_ENABLE_TASKS !== 'true') return go('setup-required');
+    jar.set('timeslice_google_target', service, { httpOnly: true, secure: config.secure, sameSite: 'lax', path: '/', maxAge: 600 });
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google', options: {
-        redirectTo: `${config.site}/api/auth/callback`, scopes: calendarScopes,
-        queryParams: { access_type: 'offline', prompt: 'consent' },
+        redirectTo: `${config.site}/api/auth/callback`, scopes: `openid email ${service === 'tasks' ? tasksScope : calendarScopes}`,
+        queryParams: { access_type: 'offline', prompt: 'consent', include_granted_scopes: 'true' },
       },
     });
     if (error || !data.url) return go('sign-in-failed');
     return NextResponse.redirect(data.url, { status: 303, headers: privateHeaders });
   }
+  const service = jar.get('timeslice_google_target')?.value;
+  jar.delete('timeslice_google_target');
+  if (service !== 'calendar' && service !== 'tasks') return go('sign-in-failed');
   const codes = request.nextUrl.searchParams.getAll('code');
   if (codes.length !== 1 || request.nextUrl.searchParams.has('error')) return go('sign-in-failed');
   try {
@@ -53,9 +61,9 @@ export async function GET(request: NextRequest, { params }: Context) {
     await saveSession(session);
     if (!session.provider_token) return go('calendar-permission-required');
     const response = await calendarBackend('connection', session.access_token, {
-      method: 'PUT', body: JSON.stringify({ access_token: session.provider_token, refresh_token: session.provider_refresh_token ?? null }),
+      method: 'PUT', body: JSON.stringify({ service, access_token: session.provider_token, refresh_token: session.provider_refresh_token ?? null }),
     });
-    return go(response.ok ? 'connected' : 'calendar-connection-failed');
+    return go(response.ok ? `${service}-connected` : 'calendar-connection-failed');
   } catch { return go('calendar-connection-failed'); }
 }
 

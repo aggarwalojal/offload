@@ -13,7 +13,7 @@ export async function GET(request: NextRequest, { params }: Context) {
   let email: string | null = null;
   try {
     const session = await verifiedSession();
-    if (!session) return NextResponse.json({ configured, signed_in: false, connected: false }, { status: action === 'events' ? 401 : 200, headers });
+    if (!session) return NextResponse.json({ configured, signed_in: false, connected: false, tasks_connected: false, tasks_enabled: process.env.GOOGLE_ENABLE_TASKS === 'true' }, { status: action === 'events' ? 401 : 200, headers });
     signedIn = true;
     email = session.user.email ?? null;
     const query = new URLSearchParams();

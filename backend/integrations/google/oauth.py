@@ -67,8 +67,9 @@ class GoogleOAuthService:
     or a thread pool, rather than directly in an async event loop.
     """
 
-    def __init__(self, config: GoogleConfig):
+    def __init__(self, config: GoogleConfig, *, required_scopes: tuple[str, ...] | None = None):
         self.config = config
+        self.required_scopes = config.scopes if required_scopes is None else required_scopes
         self._pending: dict[str, _PendingAuthorization] = {}
         self._lock = Lock()
 
@@ -193,7 +194,7 @@ class GoogleOAuthService:
             granted = credentials.scopes or ()
         if isinstance(granted, str):
             granted = granted.split()
-        if not set(self.config.scopes).issubset(set(granted)):
+        if not set(self.required_scopes).issubset(set(granted)):
             raise GoogleReconnectRequired(
                 "Required Google permissions were not granted. Reconnect and approve access."
             )

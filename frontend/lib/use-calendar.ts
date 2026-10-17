@@ -5,7 +5,7 @@ import { calendarRange, normalizeEvents, type GoogleEvent } from './calendar-dat
 import type { Activity } from './mock-data';
 
 export type CalendarConnection = {
-  configured: boolean; signed_in: boolean; connected: boolean; email?: string | null;
+  tasks_connected?: boolean; tasks_enabled?: boolean; configured: boolean; signed_in: boolean; connected: boolean; email?: string | null;
 };
 
 export function useCalendar() {
@@ -19,7 +19,7 @@ export function useCalendar() {
       const response = await fetch('/api/google/connection', { cache: 'no-store' });
       const status = await response.json();
       setLoading(true); setError('');
-      setConnection({ configured: !!status.configured, signed_in: !!status.signed_in, connected: !!status.connected, email: status.email });
+      setConnection({ configured: !!status.configured, signed_in: !!status.signed_in, connected: !!status.connected, email: status.email, tasks_connected: !!status.tasks_connected, tasks_enabled: !!status.tasks_enabled });
       if (!response.ok) { setItems([]); throw new Error(status.detail || 'Calendar connection could not be checked.'); }
       setItems([]);
       if (status.connected) {

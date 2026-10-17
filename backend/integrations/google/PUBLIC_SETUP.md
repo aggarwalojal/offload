@@ -153,3 +153,45 @@ References: [Supabase Google OAuth](https://supabase.com/docs/guides/auth/social
 [Supabase server-side auth](https://supabase.com/docs/guides/auth/server-side),
 [Supabase RLS](https://supabase.com/docs/guides/database/postgres/row-level-security),
 [Google OAuth web applications](https://developers.google.com/identity/protocols/oauth2/web-server).
+
+## WhatsApp execution service
+
+`backend.main:app` now executes Calendar plans instead of returning simulated
+success. Deploy it with `backend/requirements.txt` and the same Google, Supabase,
+and encryption settings as the connection API. Set `AI_SERVICE_TOKEN` to the
+same server-only value on the Twilio worker and AI service. The worker's
+`AI_BASE_URL` must point to that AI service.
+
+`POST /api/execute` requires its service bearer token, the resolved Supabase user
+UUID, message ID, and `authorization_source=inbound_whatsapp_create_request`.
+Only proposed timed events are accepted. Availability is checked before writes,
+Google IDs are returned only after successful creation, and retry IDs are derived
+from the WhatsApp message and plan position. Retry the same plan in the same order;
+a changed payload is rejected by the Calendar adapter's payload checks. Unscheduled
+Tasks are returned for clarification rather than reported as synchronized.
+
+## Enable Google Tasks
+
+1. Enable Google Tasks API in the same Google Cloud project as the OAuth client.
+2. Run `migrations/002_task_executions.sql` in Supabase SQL Editor.
+3. Set `GOOGLE_ENABLE_TASKS=true` on both Next.js and Python services; restart/redeploy.
+4. Reconnect Google from Settings and approve Tasks permission in addition to Calendar.
+
+Task-only WhatsApp plans now create tasks in the user's default Google Tasks list,
+including category notes and optional due dates. Mixed event/task plans require
+separate messages. Tasks do not contribute hours to Calendar analytics.
+Durable per-user message reservations reuse completed task IDs on retries. Pending
+reservations are never automatically reinserted: after an uncertain response, an
+operator must check Google Tasks and reconcile the stored ID before retrying.
+Do not delete a pending reservation without confirming the provider did not write.
+
+## Separate connection buttons
+
+Settings offers Calendar and Tasks buttons with statuses derived from the saved,
+verified scopes. `GET /api/auth/login?service=calendar|tasks` requests the selected
+service; Google incremental authorization retains existing permissions. The chosen
+service is held in a short-lived HttpOnly cookie through the PKCE callback. Backend
+verification requires the selected scope and rejects a grant that drops an existing
+service. Both services use the same encrypted Google account grant; disconnecting
+the Google account removes both local connections. No extra database migration is
+needed for separate statuses.

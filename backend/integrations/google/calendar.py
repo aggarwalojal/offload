@@ -130,6 +130,12 @@ class CalendarResult:
     event: dict[str, Any] | None = field(default=None, repr=False)
 
 
+def calendar_event_id(user_id: str, calendar_id: str, action_id: str) -> str:
+    """Stable Google event ID for safe create retries and availability checks."""
+    identity = json.dumps([user_id, calendar_id, action_id])
+    return hashlib.sha256(identity.encode()).hexdigest()
+
+
 class GoogleCalendarService:
     """One service per user's stored credentials; never share it across users.
 
@@ -228,8 +234,7 @@ class GoogleCalendarService:
     def _create(self, action: CalendarAction, path: str) -> CalendarResult:
         # Hex digits are a subset of Google's base32hex event-ID alphabet.
         # Deterministic IDs make a retry after a lost response safe from duplicates.
-        identity = json.dumps([self.user_id, action.calendar_id, action.action_id])
-        event_id = hashlib.sha256(identity.encode()).hexdigest()
+        event_id = calendar_event_id(self.user_id, action.calendar_id, action.action_id)
         body = action.event.google_body()
         fingerprint = hashlib.sha256(
             json.dumps(body, sort_keys=True, separators=(",", ":")).encode()

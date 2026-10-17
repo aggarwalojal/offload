@@ -12,6 +12,7 @@ import os
 from pathlib import Path
 from urllib.parse import urlsplit
 from uuid import UUID
+from typing import Literal
 
 from cryptography.fernet import Fernet, InvalidToken
 from dotenv import load_dotenv
@@ -23,7 +24,7 @@ import requests
 from google.oauth2.credentials import Credentials
 
 from .calendar import CalendarAPIError, CalendarValidationError, GoogleCalendarService
-from .config import GOOGLE_TOKEN_URI, GoogleConfig, get_google_config
+from .config import CALENDAR_SCOPES, TASKS_SCOPES, GOOGLE_TOKEN_URI, GoogleConfig, get_google_config
 from .oauth import GoogleOAuthService, GoogleReconnectRequired
 
 
@@ -47,10 +48,11 @@ class PublicSettings:
 
     @classmethod
     def from_env(cls):
+        load_dotenv(Path(__file__).resolve().parents[2] / ".env", override=False)
         load_dotenv(Path(__file__).with_name(".env"), override=False)
         return cls(
             supabase_url=os.environ.get("SUPABASE_URL", "").rstrip("/"),
-            supabase_secret_key=os.environ.get("SUPABASE_SECRET_KEY", ""),
+            supabase_secret_key=os.environ.get("SUPABASE_SECRET_KEY") or os.environ.get("SUPABASE_SERVICE_ROLE_KEY", ""),
             encryption_key=os.environ.get("GOOGLE_TOKEN_ENCRYPTION_KEY", ""),
             google=get_google_config(),
         )
@@ -136,6 +138,7 @@ def google_subject(user: dict) -> str:
 
 
 class ProviderTokens(BaseModel):
+    service: Literal["calendar", "tasks"] = "calendar"
     access_token: SecretStr
     refresh_token: SecretStr | None = None
 
@@ -143,7 +146,7 @@ class ProviderTokens(BaseModel):
 def create_public_app(settings: PublicSettings | None = None) -> FastAPI:
     settings = settings or PublicSettings.from_env()
     gateway = SupabaseGateway(settings)
-    oauth = GoogleOAuthService(settings.google)
+    oauth = GoogleOAuthService(settings.google, required_scopes=CALENDAR_SCOPES)
     app = FastAPI(title="TimeSlice Calendar API", docs_url=None, redoc_url=None, openapi_url=None)
 
     @app.exception_handler(RequestValidationError)
@@ -186,7 +189,12 @@ def create_public_app(settings: PublicSettings | None = None) -> FastAPI:
     def connection(user=Depends(current_user)):
         record = gateway.load(user["id"])
         connected = record is not None and record["google_sub"] == google_subject(user)
-        return {"connected": connected, "email": user.get("email")}
+        scopes = set(record['credentials'].get('scopes', [])) if connected else set()
+        calendar_connected = connected and set(CALENDAR_SCOPES).issubset(scopes)
+        tasks_connected = connected and settings.google.enable_tasks and set(TASKS_SCOPES).issubset(scopes)
+        return {"connected": calendar_connected, "calendar_connected": calendar_connected,
+                "tasks_connected": tasks_connected, "tasks_enabled": settings.google.enable_tasks,
+                "email": user.get("email")}
 
     @app.put("/api/google/connection")
     def connect(tokens: ProviderTokens, user=Depends(current_user)):
@@ -207,8 +215,16 @@ def create_public_app(settings: PublicSettings | None = None) -> FastAPI:
             if google_user.get("sub") != subject or token_info.get("aud") != settings.google.client_id:
                 raise HTTPException(403, "Google account does not match your TimeSlice account.")
             granted = token_info.get("scope", "").split()
-            if not set(settings.google.scopes).issubset(granted):
-                raise HTTPException(409, "Approve the requested Calendar permissions and reconnect.")
+            required = TASKS_SCOPES if tokens.service == 'tasks' else CALENDAR_SCOPES
+            if tokens.service == 'tasks' and not settings.google.enable_tasks:
+                raise HTTPException(409, "Google Tasks is not enabled yet.")
+            if not set(required).issubset(granted):
+                raise HTTPException(409, "Approve the requested Google permissions and reconnect.")
+            previous = gateway.load(user["id"])
+            if previous and previous['google_sub'] == subject:
+                old_scopes = set(previous['credentials'].get('scopes', [])) & set(CALENDAR_SCOPES + TASKS_SCOPES)
+                if not old_scopes.issubset(granted):
+                    raise HTTPException(409, "Keep existing Google permissions selected when connecting another service.")
             lifetime = int(token_info["expires_in"])
             if lifetime <= 0:
                 raise ValueError
