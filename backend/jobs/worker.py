@@ -53,8 +53,8 @@ async def process_outbox(repo, sender):
             await repo.update("whatsapp_outbox", message["id"], status="accepted", twilio_sid=sid)
 
 
-async def run(settings=None):
-    settings = settings or Settings()
+async def run():
+    settings = Settings()
     async with httpx.AsyncClient(timeout=15) as client:
         repo = Repository(client, settings.supabase_url, settings.supabase_service_role_key.get_secret_value())
         bridge, sender = AIBridge(client, settings), Sender(client, settings)
