@@ -9,12 +9,14 @@ import { Calendar, MessageCircle, Sparkles } from 'lucide-react';
 import { activities as demoActivities, categories, timeLabel, type Activity, type Category } from '@/lib/mock-data';
 import { ScreenTimeView } from './screen-time-view';
 import { WhatsAppPhone } from './whatsapp-phone';
+import { WhatsAppConnection } from './whatsapp-connection';
 import { CategoryBadge, Logo } from './ui';
 
 export default function Dashboard() {
   const calendar = useCalendar();
   const params = useSearchParams();
   const [settingsOpen, setSettingsOpen] = useState(params.get('view') === 'settings');
+  const [rightTab, setRightTab] = useState<'simulator' | 'connect'>('simulator');
   const [demoItems, setDemoItems] = useState<Activity[]>(demoActivities);
   const live = calendar.connection.signed_in;
   const analytics = live ? liveAnalytics(calendar.items) : undefined;
@@ -103,17 +105,131 @@ export default function Dashboard() {
             <div className="phone-widget-wrapper">
               <div className="widget-header">
                 <div>
-                  <h2>{live ? "Send plans in WhatsApp" : "WhatsApp Brain Dump"}</h2>
-                  <p>{live ? "Your real chat powers this workspace." : "Try the demo. Real Google sync uses your WhatsApp messages."}</p>
+                  <h2>{live ? "Live WhatsApp & Google Sync" : "WhatsApp Intelligence"}</h2>
+                  <p>{live ? "Your real chat powers this workspace." : "Test in the interactive simulator or connect your real phone & Google."}</p>
                 </div>
-                <span className="live-pill">
-                  <Sparkles size={12} />
-                  {live ? "GOOGLE SYNC" : "DEMO PREVIEW"}
-                </span>
+                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                  <button
+                    type="button"
+                    onClick={() => setRightTab('simulator')}
+                    style={{
+                      padding: '5px 12px',
+                      borderRadius: '20px',
+                      fontSize: '11px',
+                      fontWeight: 600,
+                      border: '1px solid',
+                      borderColor: rightTab === 'simulator' ? '#F43F5E' : '#E2E8F0',
+                      background: rightTab === 'simulator' ? '#FFF1F2' : '#FFFFFF',
+                      color: rightTab === 'simulator' ? '#E11D48' : '#64748B',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    📱 Simulator
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRightTab('connect')}
+                    style={{
+                      padding: '5px 12px',
+                      borderRadius: '20px',
+                      fontSize: '11px',
+                      fontWeight: 600,
+                      border: '1px solid',
+                      borderColor: rightTab === 'connect' ? '#10B981' : '#E2E8F0',
+                      background: rightTab === 'connect' ? '#F0FDF4' : '#FFFFFF',
+                      color: rightTab === 'connect' ? '#059669' : '#64748B',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    ⚡ Connect Live
+                  </button>
+                </div>
               </div>
 
-              {/* The Phone Simulator */}
-              {live ? <div className="live-whatsapp-guide"><h3>Text it. Offload it.</h3><p>Connect your Google services, then verify your WhatsApp number in Settings. Return to your WhatsApp chat and send your plans.</p><p>For example: “Client kickoff with Delta tomorrow 2–3 PM and review Vantage HCM migration checklist by Friday.”</p><button className="connect-google" onClick={() => setSettingsOpen(true)}>Manage WhatsApp &amp; Google</button><small>Once the agent confirms your message, Calendar events and Tasks refresh here automatically.</small></div> : <WhatsAppPhone onMessageSent={handleSimulatedMessage} />}
+              {/* The Phone Simulator or Live Connection Manager */}
+              {rightTab === 'connect' || (live && rightTab !== 'simulator') ? (
+                <div className="live-whatsapp-guide">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                    <h3 style={{ margin: 0 }}>Connect Live Services</h3>
+                    <button
+                      type="button"
+                      className="quick-chip"
+                      style={{ padding: '4px 10px', fontSize: '11px' }}
+                      onClick={() => setRightTab('simulator')}
+                    >
+                      📱 Try Simulator
+                    </button>
+                  </div>
+                  <p style={{ marginBottom: '16px', fontSize: '13px', lineHeight: 1.6 }}>
+                    Connect your real Google account and WhatsApp phone. Real commitments and brain dumps you text will parse, check for conflicts, and schedule directly.
+                  </p>
+
+                  {/* 1. Google Account Connection Card */}
+                  <div style={{ background: '#F8FAFC', padding: '16px', borderRadius: '16px', marginBottom: '14px', border: '1px solid #E2E8F0' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <div>
+                        <strong style={{ fontSize: '14px', color: '#0F172A', display: 'block' }}>1. Google Calendar &amp; Tasks</strong>
+                        <span style={{ fontSize: '12px', color: '#64748B' }}>
+                          {calendar.connection.connected ? `Connected as ${calendar.connection.email}` : 'Sign in to sync your live events and to-dos.'}
+                        </span>
+                      </div>
+                      <span className={`subtle-pill ${calendar.connection.connected ? 'active' : ''}`}>
+                        {calendar.connection.connected ? 'Connected ✓' : 'Not Connected'}
+                      </span>
+                    </div>
+                    {!calendar.connection.connected ? (
+                      <form action="/api/auth/login" method="get">
+                        <input type="hidden" name="service" value="calendar" />
+                        <button
+                          className="connect-google"
+                          type="submit"
+                          disabled={!calendar.connection.configured || calendar.loading}
+                          style={{ width: '100%', marginTop: '8px' }}
+                        >
+                          Connect Google Calendar
+                        </button>
+                      </form>
+                    ) : (
+                      <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                        <button
+                          type="button"
+                          className="connect-google"
+                          style={{ flex: 1, padding: '8px 12px', fontSize: '12px' }}
+                          onClick={() => void calendar.refresh()}
+                        >
+                          Refresh Google Data
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 2. WhatsApp Phone Integration Card */}
+                  <div style={{ background: '#F0FDF4', padding: '16px', borderRadius: '16px', border: '1px solid #BBF7D0' }}>
+                    <div style={{ marginBottom: '10px' }}>
+                      <strong style={{ fontSize: '14px', color: '#166534', display: 'block' }}>2. WhatsApp Phone Integration</strong>
+                      <span style={{ fontSize: '12px', color: '#15803D' }}>
+                        Link your phone number to text plans directly into Offload.
+                      </span>
+                    </div>
+                    <WhatsAppConnection
+                      key={calendar.connection.email ?? 'anon'}
+                      signedIn={calendar.connection.signed_in}
+                      googleConnected={calendar.connection.connected || !!calendar.connection.tasks_connected}
+                    />
+                  </div>
+
+                  <small style={{ marginTop: '14px', display: 'block', color: '#64748B', fontSize: '12px' }}>
+                    Once connected, text your plans to WhatsApp (e.g., “Client kickoff with Delta tomorrow 2–3 PM”) and watch your dashboard update automatically.
+                  </small>
+                </div>
+              ) : (
+                <WhatsAppPhone
+                  onMessageSent={handleSimulatedMessage}
+                  onSwitchToLive={() => setRightTab('connect')}
+                />
+              )}
 
               {live && <section className="schedule-queue-card" aria-label="Google Tasks"><div className="queue-header"><h3>Your Google Tasks</h3><span>{calendar.tasks.length} to-dos</span></div><div className="queue-list">{calendar.connection.tasks_connected ? calendar.tasks.length ? calendar.tasks.map(task => <div className="queue-item" key={task.external_id}><div className="queue-item-left"><div><strong>{task.title}</strong><small>{task.due ? `Due ${task.due.slice(0, 10)}` : 'No due date'}</small></div></div></div>) : <p className="offload-empty">No open tasks. New WhatsApp tasks will appear here after Google sync.</p> : <p className="offload-empty">Connect Google Tasks in Settings to see your to-dos.</p>}</div></section>}
               {/* Today's Synced Schedule Card */}

@@ -6,6 +6,7 @@ import { categories, sampleChats, type ChatMessage } from '@/lib/mock-data';
 
 interface WhatsAppPhoneProps {
   onMessageSent?: (msg: string) => void;
+  onSwitchToLive?: () => void;
 }
 
 const PRESET_CHIPS = [
@@ -15,7 +16,7 @@ const PRESET_CHIPS = [
   'Client sponsor sync Monday 10 AM',
 ];
 
-export function WhatsAppPhone({ onMessageSent }: WhatsAppPhoneProps) {
+export function WhatsAppPhone({ onMessageSent, onSwitchToLive }: WhatsAppPhoneProps) {
   const [messages, setMessages] = useState<ChatMessage[]>(sampleChats);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -141,6 +142,26 @@ export function WhatsAppPhone({ onMessageSent }: WhatsAppPhoneProps) {
 
       {/* Quick Brain Dump Preset Chips */}
       <div className="wa-quick-chips">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '4px', padding: '0 4px' }}>
+          <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Quick Brain Dumps</span>
+          {onSwitchToLive && (
+            <button
+              type="button"
+              onClick={onSwitchToLive}
+              style={{
+                background: 'none',
+                border: 'none',
+                fontSize: '11px',
+                color: '#2563EB',
+                fontWeight: 600,
+                cursor: 'pointer',
+                padding: 0
+              }}
+            >
+              Connect Real Phone &rarr;
+            </button>
+          )}
+        </div>
         {PRESET_CHIPS.map((chip, i) => (
           <button key={i} className="quick-chip" onClick={() => handleSend(chip)}>
             <Sparkles size={11} />
