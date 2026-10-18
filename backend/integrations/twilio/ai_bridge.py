@@ -78,7 +78,8 @@ class AIBridge:
                 action.external_id = None
             plan.reply = "Nothing was scheduled. " + (plan.reply or "Please clarify the date, start time and duration of your events.")
             return plan
-        executed = await self.client.post(f"{self.settings.ai_base_url.rstrip('/')}/api/execute",
+        execution_base = self.settings.google_execution_url or self.settings.ai_base_url
+        executed = await self.client.post(f"{execution_base.rstrip('/')}/api/execute",
             json={**context, "activities" if activities_contract else "actions": [a.model_dump(mode="json") for a in plan.actions],
                   "authorization_source": "inbound_whatsapp_create_request"}, headers=headers, timeout=60)
         executed.raise_for_status()

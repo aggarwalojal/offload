@@ -6,14 +6,14 @@ const headers = { 'Cache-Control': 'no-store, private', 'Referrer-Policy': 'no-r
 
 export async function GET(request: NextRequest, { params }: Context) {
   const { action } = await params;
-  if (!['connection', 'events'].includes(action)) return new NextResponse('Not found', { status: 404 });
+  if (!['connection', 'events', 'tasks'].includes(action)) return new NextResponse('Not found', { status: 404 });
   const config = authConfig();
   const configured = !!config && !!process.env.GOOGLE_BACKEND_URL;
   let signedIn = false;
   let email: string | null = null;
   try {
     const session = await verifiedSession();
-    if (!session) return NextResponse.json({ configured, signed_in: false, connected: false, tasks_connected: false, tasks_enabled: process.env.GOOGLE_ENABLE_TASKS === 'true' }, { status: action === 'events' ? 401 : 200, headers });
+    if (!session) return NextResponse.json({ configured, signed_in: false, connected: false, tasks_connected: false, tasks_enabled: process.env.GOOGLE_ENABLE_TASKS === 'true' }, { status: action !== 'connection' ? 401 : 200, headers });
     signedIn = true;
     email = session.user.email ?? null;
     const query = new URLSearchParams();

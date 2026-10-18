@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { MessageCircle } from 'lucide-react';
 
-export function WhatsAppConnection({ signedIn, calendarConnected }: { signedIn: boolean; calendarConnected: boolean }) {
+export function WhatsAppConnection({ signedIn, googleConnected }: { signedIn: boolean; googleConnected: boolean }) {
   const [connected, setConnected] = useState(false);
   const [url, setUrl] = useState('');
   const [expiresAt, setExpiresAt] = useState(0);
@@ -49,10 +49,10 @@ export function WhatsAppConnection({ signedIn, calendarConnected }: { signedIn: 
   return <div>
     <div className="connection-row"><span className="feed-icon green"><MessageCircle size={19} /></span><div><h3>WhatsApp</h3><p>{signedIn && connected ? 'Send tasks from your linked WhatsApp account.' : 'Connect Google, then verify your WhatsApp number.'}</p></div><span className="subtle-pill">{signedIn && connected ? 'Connected' : 'Not connected'}</span></div>
     <div className="calendar-actions">
-      {(!signedIn || !connected) && <button className="connect-google" disabled={!signedIn || !calendarConnected || busy} onClick={() => void connect()}>{busy ? 'Preparing…' : 'Connect WhatsApp'}</button>}
+      {(!signedIn || !connected) && <button className="connect-google" disabled={!signedIn || !googleConnected || busy} onClick={() => void connect()}>{busy ? 'Preparing…' : 'Connect WhatsApp'}</button>}
       {signedIn && !connected && url && <p><a href={url} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer">Open WhatsApp and send verification</a><br />Use the phone you want to send tasks from. The message links it to your signed-in TimeSlice account. It expires in 15 minutes.</p>}
       {signedIn && connected && <p role="status">WhatsApp connected. Return to your chat and send a task.</p>}
-      {!calendarConnected && <p>Connect Google Calendar below first.</p>}
+      {!googleConnected && <p>Connect Google Calendar or Tasks below first.</p>}
       {error && <p className="connection-error" role="alert">{error}</p>}
     </div>
   </div>;

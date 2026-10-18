@@ -5,6 +5,7 @@ WORKDIR /app
 COPY backend/integrations/google/requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 COPY backend/integrations/google /app/backend/integrations/google
+COPY backend/schemas.py /app/backend/schemas.py
 RUN useradd --create-home timeslice
 USER timeslice
 EXPOSE 8000

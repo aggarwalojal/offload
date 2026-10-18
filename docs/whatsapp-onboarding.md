@@ -53,3 +53,52 @@ Confirm it appears in that account's Calendar. Repeat with another account to
 verify isolation. Test an expired code, a reused code, STOP, and a phone already
 linked to another account. Automated tests use mocked providers and disposable
 PostgreSQL; they do not establish that production OAuth/deployment is configured.
+
+## Live Offload deployment
+
+Frontend: `https://timeslice-dashboard.vercel.app`. Google API:
+`https://timeslice-google-api.vercel.app`. The frontend uses `WHATSAPP_BACKEND_URL`
+for account verification; update it and redeploy whenever the ngrok origin changes.
+The latest frontend refreshes Calendar events and open Google Tasks every 15 seconds
+while visible, on focus, and on reconnect. It preserves charts during background
+refreshes. Tasks have a separate list and do not count as planned Calendar hours.
+
+### Required worker handoff
+
+The WhatsApp web service **and** `python -m backend.jobs.worker` must run with
+the same shared Supabase project and current code. Configure:
+
+```dotenv
+DASHBOARD_URL=https://timeslice-dashboard.vercel.app
+AI_BASE_URL=https://YOUR_AI_SERVICE
+GOOGLE_EXECUTION_URL=https://timeslice-google-api.vercel.app
+AI_SERVICE_TOKEN=the-same-private-token-on-worker-and-google-api
+```
+
+Set `AI_SERVICE_TOKEN` as a production secret on the Google API Vercel project.
+The worker also sends it to the parser service. The AI service needs its Gemini
+key; the Google API already holds Google OAuth/storage credentials. If
+`GOOGLE_EXECUTION_URL` is empty, execution uses `AI_BASE_URL` as before and that
+AI service must hold the Google/storage configuration. Never share tokens in chat.
+
+Mixed event/task messages are supported. Calendar validation/conflicts run first,
+Tasks are prevalidated, and original message positions preserve retry identity.
+Partial provider failures return only confirmed outcomes; operations are not a
+transaction across Google products. Uncertain Tasks writes require reconciliation.
+
+### Acceptance test (requires the running services)
+
+1. Text hello from a Sandbox participant phone; receive the public dashboard link.
+2. Connect Calendar and Tasks, then use Connect WhatsApp and SEND the generated
+   verification message from that same phone. Verify the Connected status.
+3. Send an event with explicit dates/times plus a task with a due date. Verify
+   the agent replies with actual outcomes, not just a welcome or demo message.
+4. Verify the event in Google Calendar and the task in Google Tasks. Leave the
+   dashboard open; both should appear within 15 seconds after the write finishes.
+5. Reload, switch tabs, and retry the same message through the queue: verify data
+   persists and retries do not duplicate Google writes. Repeat with a second
+   account to confirm each sees only their own Google data.
+
+The first unlinked message intentionally is not scheduled; resend plans after
+verification. A healthy ngrok `/health` proves the web server only, not the worker,
+Gemini configuration, shared execution token, or the Twilio webhook setting.

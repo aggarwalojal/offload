@@ -25,6 +25,7 @@ from google.oauth2.credentials import Credentials
 
 from .calendar import CalendarAPIError, CalendarValidationError, GoogleCalendarService
 from .config import CALENDAR_SCOPES, TASKS_SCOPES, GOOGLE_TOKEN_URI, GoogleConfig, get_google_config
+from .tasks import GoogleTasksService, TaskAPIError
 from .oauth import GoogleOAuthService, GoogleReconnectRequired
 
 
@@ -183,7 +184,7 @@ def create_public_app(settings: PublicSettings | None = None) -> FastAPI:
 
     @app.get("/health")
     def health():
-        return {"status": "ok"}
+        return {"status": "ok", "execution_configured": bool(os.environ.get("AI_SERVICE_TOKEN"))}
 
     @app.get("/api/google/connection")
     def connection(user=Depends(current_user)):
@@ -251,6 +252,30 @@ def create_public_app(settings: PublicSettings | None = None) -> FastAPI:
         gateway.delete(user["id"])
         return {"connected": False}
 
+    @app.get('/api/google/tasks')
+    def tasks(user=Depends(current_user)):
+        if not settings.google.enable_tasks:
+            raise HTTPException(409, 'Google Tasks is not enabled.')
+        subject, credentials = credentials_for(user)
+        if not credentials.has_scopes(TASKS_SCOPES):
+            raise HTTPException(409, 'Connect Google Tasks in Settings first.')
+        service = GoogleTasksService(user_id=user['id'], credentials=credentials,
+            oauth=GoogleOAuthService(settings.google, required_scopes=TASKS_SCOPES))
+        try:
+            raw = service.list_tasks()
+            return {'tasks': [{'external_id': item['id'], 'title': item.get('title', 'Untitled task'),
+                'due': item.get('due'), 'status': item.get('status', 'needsAction')}
+                for item in raw if item.get('id')]}
+        except GoogleReconnectRequired:
+            raise HTTPException(409, 'Reconnect Google Tasks in Settings.') from None
+        except TaskAPIError:
+            raise HTTPException(502, 'Google Tasks is temporarily unavailable. Try again shortly.') from None
+        finally:
+            try:
+                gateway.save(user['id'], subject, credentials)
+            finally:
+                service.close()
+
     @app.get("/api/google/events")
     def events(start_time: datetime, end_time: datetime, user=Depends(current_user)):
         subject, credentials = credentials_for(user)
@@ -277,4 +302,6 @@ def create_public_app(settings: PublicSettings | None = None) -> FastAPI:
             "status": item.get("status"), "transparency": item.get("transparency", "opaque"),
         } for item in raw]}
 
+    from .execution import create_execution_router
+    app.include_router(create_execution_router())
     return app

@@ -16,16 +16,17 @@ from .schemas import build_task_action_from_activity
 from .tasks import GoogleTasksService, TaskAPIError, TaskValidationError
 
 
-def execute_tasks(settings, gateway, request):
+def execute_tasks(settings, gateway, request, *, action_indexes=None):
     from .execution import _response
     activities = request.activities
+    indexes = list(range(len(activities))) if action_indexes is None else action_indexes
     if not settings.google.enable_tasks:
         return _response(activities, ActivityStatus.needs_clarification, 'Google Tasks is not enabled yet.')
     user_id = str(request.user_id)
     try:
         actions = [build_task_action_from_activity(item.model_dump(mode='json'), user_id=user_id,
                    action_id=f'whatsapp:{request.message_id}:{index}', approved=True)
-                   for index, item in enumerate(activities)]
+                   for index, item in zip(indexes, activities)]
     except (ValueError, TypeError, TaskValidationError):
         return _response(activities, ActivityStatus.needs_clarification, 'Clarify the task title, category, or due date first.')
     record = gateway.load(user_id)

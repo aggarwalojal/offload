@@ -21,10 +21,10 @@ from pydantic import Field, field_validator, model_validator
 from backend.schemas import Activity, ActivityStatus, ExecuteRequest, ExecuteResponse
 from .availability import TimeSlot, detect_conflicts
 from .calendar import CalendarAPIError, CalendarValidationError, GoogleCalendarService, calendar_event_id
-from .config import GOOGLE_TOKEN_URI, CALENDAR_SCOPES
+from .config import GOOGLE_TOKEN_URI, CALENDAR_SCOPES, TASKS_SCOPES
 from .oauth import GoogleOAuthService, GoogleReconnectRequired
 from .public_app import PublicSettings, SupabaseGateway
-from .schemas import build_calendar_action_from_activity
+from .schemas import build_calendar_action_from_activity, build_task_action_from_activity
 
 
 class CalendarExecuteRequest(ExecuteRequest):
@@ -63,23 +63,23 @@ class CalendarPlanExecutor:
         self.gateway = gateway or SupabaseGateway(settings)
         self.oauth = GoogleOAuthService(settings.google, required_scopes=CALENDAR_SCOPES)
 
-    def execute(self, request: CalendarExecuteRequest) -> ExecuteResponse:
+    def execute(self, request: CalendarExecuteRequest, *, action_indexes=None) -> ExecuteResponse:
         activities = request.activities
+        indexes = list(range(len(activities))) if action_indexes is None else action_indexes
         if any(item.status != ActivityStatus.proposed or item.external_id or item.clarification_needed for item in activities):
             return _response(activities, ActivityStatus.needs_clarification,
                              'Nothing was scheduled. Clarify the proposed activities before execution.')
         if all(item.type.value == 'task' for item in activities):
             from .task_execution import execute_tasks
-            return execute_tasks(self.settings, self.gateway, request)
-        if any(item.type.value != 'event' for item in activities):
-            return _response(activities, ActivityStatus.needs_clarification,
-                             'Nothing was scheduled. Send scheduled events and to-do tasks as separate messages.')
+            return execute_tasks(self.settings, self.gateway, request, action_indexes=indexes)
+        if any(item.type.value == 'task' for item in activities):
+            return self._execute_mixed(request, indexes)
         user_id = str(request.user_id)
         try:
             actions = [build_calendar_action_from_activity(
                 item.model_dump(mode='json'), user_id=user_id,
                 action_id=f'whatsapp:{request.message_id}:{index}', approved=True,
-            ) for index, item in enumerate(activities)]
+            ) for index, item in zip(indexes, activities)]
         except (CalendarValidationError, ValueError, TypeError):
             return _response(activities, ActivityStatus.needs_clarification,
                              'Nothing was scheduled. Each event needs a title, category, and exact timezone-aware start and end.')
@@ -141,6 +141,35 @@ class CalendarPlanExecutor:
                 self.gateway.save(user_id, record['google_sub'], credentials)
             finally:
                 calendar.close()
+
+
+    def _execute_mixed(self, request, indexes):
+        # Validate task contents and grant before Calendar writes. Calendar
+        # validation and availability checks still run before any provider write.
+        user_id = str(request.user_id)
+        try:
+            for index, item in zip(indexes, request.activities):
+                if item.type.value == 'task':
+                    build_task_action_from_activity(item.model_dump(mode='json'), user_id=user_id,
+                        action_id=f'whatsapp:{request.message_id}:{index}', approved=True)
+        except (ValueError, TypeError):
+            return _response(request.activities, ActivityStatus.needs_clarification, 'Nothing was scheduled. Clarify the task title or due date.')
+        record = self.gateway.load(user_id)
+        if not self.settings.google.enable_tasks or not record or not set(TASKS_SCOPES).issubset(record['credentials'].get('scopes', [])):
+            return _response(request.activities, ActivityStatus.needs_clarification, 'Nothing was scheduled. Connect Google Calendar and Tasks in Settings first.')
+        event_pairs = [(index, item) for index, item in zip(indexes, request.activities) if item.type.value == 'event']
+        task_pairs = [(index, item) for index, item in zip(indexes, request.activities) if item.type.value == 'task']
+        events = self.execute(request.model_copy(update={'activities': [item for _, item in event_pairs]}),
+                              action_indexes=[index for index, _ in event_pairs])
+        if events.success:
+            tasks = self.execute(request.model_copy(update={'activities': [item for _, item in task_pairs]}),
+                                 action_indexes=[index for index, _ in task_pairs])
+        else:
+            tasks = _response([item for _, item in task_pairs], ActivityStatus.needs_clarification,
+                              'Tasks were not attempted because the Calendar plan needs attention.')
+        by_id = {item.id: item for item in events.results + tasks.results}
+        return ExecuteResponse(results=[by_id[item.id] for item in request.activities],
+            success=events.success and tasks.success, whatsapp_reply=events.whatsapp_reply + '\n' + tasks.whatsapp_reply)
 
 
 def create_execution_router() -> APIRouter:

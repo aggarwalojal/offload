@@ -53,6 +53,7 @@ export default function Dashboard() {
       <main className="offload-main">
         {settingsOpen ? <SettingsPanel calendar={calendar} connectionMessage={params.get('connection')} /> : <>
         <div className="offload-data-status" role="status">{calendar.loading ? 'Checking your Google connections…' : live ? (calendar.connection.connected ? 'Your Google Calendar · Live schedule' : 'Connect Google Calendar to load your schedule.') : 'Demo workspace · Connect Google to see your own schedule.'}<button onClick={() => setSettingsOpen(true)}>Manage connections</button></div>
+        {live && <p className="offload-sync-status" role="status">{calendar.refreshing ? 'Refreshing Google…' : calendar.lastUpdated ? `Updated ${calendar.lastUpdated.toLocaleTimeString()} · Refreshes every 15 seconds` : 'Waiting for Google data'} <button disabled={calendar.refreshing} onClick={() => void calendar.refresh()}>Refresh now</button></p>}
         {calendar.error && <p className="connection-error" role="alert">{calendar.error}</p>}
         <div className="offload-grid">
           {/* Left Column: Apple Screen Time Dashboard */}
@@ -65,18 +66,19 @@ export default function Dashboard() {
             <div className="phone-widget-wrapper">
               <div className="widget-header">
                 <div>
-                  <h2>WhatsApp Brain Dump</h2>
-                  <p>Try the demo. Real Google sync uses your WhatsApp messages.</p>
+                  <h2>{live ? "Send plans in WhatsApp" : "WhatsApp Brain Dump"}</h2>
+                  <p>{live ? "Your real chat powers this workspace." : "Try the demo. Real Google sync uses your WhatsApp messages."}</p>
                 </div>
                 <span className="live-pill">
                   <Sparkles size={12} />
-                  DEMO PREVIEW
+                  {live ? "GOOGLE SYNC" : "DEMO PREVIEW"}
                 </span>
               </div>
 
               {/* The Phone Simulator */}
-              <WhatsAppPhone />
+              {live ? <div className="live-whatsapp-guide"><h3>Text it. Offload it.</h3><p>Connect your Google services, then verify your WhatsApp number in Settings. Return to your WhatsApp chat and send your plans.</p><p>For example: “Study tomorrow 2–3 PM and submit my essay by Friday.”</p><button className="connect-google" onClick={() => setSettingsOpen(true)}>Manage WhatsApp &amp; Google</button><small>Once the agent confirms your message, Calendar events and Tasks refresh here automatically.</small></div> : <WhatsAppPhone />}
 
+              {live && <section className="schedule-queue-card" aria-label="Google Tasks"><div className="queue-header"><h3>Your Google Tasks</h3><span>{calendar.tasks.length} to-dos</span></div><div className="queue-list">{calendar.connection.tasks_connected ? calendar.tasks.length ? calendar.tasks.map(task => <div className="queue-item" key={task.external_id}><div className="queue-item-left"><div><strong>{task.title}</strong><small>{task.due ? `Due ${task.due.slice(0, 10)}` : 'No due date'}</small></div></div></div>) : <p className="offload-empty">No open tasks. New WhatsApp tasks will appear here after Google sync.</p> : <p className="offload-empty">Connect Google Tasks in Settings to see your to-dos.</p>}</div></section>}
               {/* Today's Synced Schedule Card */}
               <div className="schedule-queue-card">
                 <div className="queue-header">

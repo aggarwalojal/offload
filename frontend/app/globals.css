@@ -975,3 +975,7 @@ body {
   .offload-main { padding: 22px 16px; }.screentime-card { padding: 22px 18px; }
   .preferences-panel,.connections-panel { padding: 20px; }.connection-row { gap: 10px; }.subtle-pill { padding: 5px 7px; font-size: 10px; }
 }
+
+.offload-sync-status { display:flex; align-items:center; gap:12px; flex-wrap:wrap; color:#8a7582; font-size:12px; margin-bottom:18px; }.offload-sync-status button { border:1px solid #ecdde5; border-radius:10px; padding:6px 10px; background:white; color:#795167; cursor:pointer; }.offload-sync-status button:disabled { opacity:.5; }
+
+.live-whatsapp-guide { background:white; border:1px solid #f0e3e9; padding:26px; border-radius:24px; }.live-whatsapp-guide h3 { font-size:22px; font-weight:650; margin-bottom:14px; }.live-whatsapp-guide p { color:#8a7582; line-height:1.7; margin-bottom:18px; font-size:14px; }.live-whatsapp-guide small { display:block; color:#8a7582; line-height:1.7; margin-top:18px; }

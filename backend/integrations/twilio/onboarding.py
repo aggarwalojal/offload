@@ -19,12 +19,12 @@ def dashboard_link(settings) -> str:
 
 
 def welcome_link(settings, *, linked: bool = False) -> str:
-    instructions = ("Your WhatsApp is linked. Connect Google Calendar in the dashboard if you haven't already, "
+    instructions = ("Your WhatsApp is linked. Connect Google Calendar and Google Tasks in the dashboard if you haven't already, "
                     "then return here and send your tasks." if linked else
                     "Then select Connect WhatsApp and send its verification message here. "
                     "Return to this chat to send your tasks.")
     return ("Welcome to TimeSlice 👋\nYour personal task and calendar assistant.\n\n"
-            f"Open your dashboard to connect Google Calendar:\n{dashboard_link(settings)}\n\n"
+            f"Open your dashboard to connect Google Calendar and Google Tasks:\n{dashboard_link(settings)}\n\n"
             f"{instructions}\nNothing has been scheduled by this welcome message.")
 
 

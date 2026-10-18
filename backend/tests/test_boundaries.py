@@ -264,3 +264,23 @@ async def test_task_containing_greeting_still_reaches_parser(settings,user):
         await AIBridge(client,settings).process(user,{
             "id":"SM1","body":"Hi, schedule studying tomorrow 7–9 PM","created_at":"2026-10-17T12:00:00Z"})
     client.post.assert_awaited_once()
+
+
+async def test_worker_can_use_separate_hosted_google_execution(settings, user):
+    settings.ai_base_url = 'https://parser.test'
+    settings.google_execution_url = 'https://google.test'
+    settings.ai_service_token = SecretStr('shared-service-token')
+    activity = event(status='proposed', external_id=None)
+    calls = []
+    def respond(request):
+        calls.append(str(request.url))
+        assert request.headers['authorization'] == 'Bearer shared-service-token'
+        if request.url.host == 'parser.test':
+            return httpx.Response(200, json={'activities': [activity], 'needs_clarification': False})
+        return httpx.Response(200, json={'results': [{**activity, 'status': 'completed', 'external_id': 'google-id'}],
+                                         'success': True, 'whatsapp_reply': 'Added'})
+    async with httpx.AsyncClient(transport=httpx.MockTransport(respond)) as client:
+        result = await AIBridge(client, settings).process(user, {'id': 'SM-one', 'body': 'Study',
+            'created_at': '2026-10-17T12:00:00Z'})
+    assert calls == ['https://parser.test/api/parse', 'https://google.test/api/execute']
+    assert result.actions[0].external_id == 'google-id'

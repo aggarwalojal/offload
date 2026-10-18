@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     twilio_morning_content_sid: str = ""
     twilio_evening_content_sid: str = ""
     ai_base_url: str = ""
+    google_execution_url: str = ""
     ai_service_token: SecretStr = SecretStr("")
     dashboard_url: str = ""
     worker_poll_seconds: float = Field(default=5, ge=1, le=60)

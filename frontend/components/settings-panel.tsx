@@ -56,8 +56,8 @@ export function SettingsPanel({ calendar, connectionMessage }: { calendar: Calen
         <div className="setting-row"><div><h3>Timezone</h3><p>Your real Calendar uses your browser’s timezone.</p></div><span className="timezone">Local time</span></div>
         <p className="settings-note">Briefing preferences are previews. Messages aren’t scheduled yet.</p></div>
       </Panel>
-      <Panel className="connections-panel"><div className="panel-heading"><div><h2>Your connected world</h2><p>One sign-in. A schedule that’s yours.</p></div></div><div className="settings-content">
-        <WhatsAppConnection key={status.email ?? 'anonymous'} signedIn={status.signed_in} calendarConnected={status.connected} />
+      <Panel className="connections-panel"><div className="panel-heading"><div><h2>Your connected world</h2><p>1. Connect Google · 2. Verify WhatsApp · 3. Text your plans.</p></div></div><div className="settings-content">
+        <WhatsAppConnection key={status.email ?? 'anonymous'} signedIn={status.signed_in} googleConnected={status.connected || !!status.tasks_connected} />
         {([
           { service: 'calendar', title: 'Google Calendar', description: 'Scheduled events and time analytics.', connected: status.connected, enabled: status.configured, Icon: CalendarDays, color: 'blue' },
           { service: 'tasks', title: 'Google Tasks', description: 'To-do items and deadlines.', connected: !!status.tasks_connected, enabled: status.configured && !!status.tasks_enabled, Icon: ListTodo, color: 'green' },

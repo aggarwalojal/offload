@@ -11,6 +11,7 @@ package = target / 'backend/integrations/google'
 package.mkdir(parents=True, exist_ok=True)
 for item in source.glob('*.py'):
     shutil.copyfile(item, package / item.name)
+shutil.copyfile(root / 'backend/schemas.py', target / 'backend/schemas.py')
 shutil.copyfile(source / 'requirements.txt', target / 'requirements.txt')
 (target / 'app.py').write_text('from backend.integrations.google.public_app import create_public_app\n\napp = create_public_app()\n')
 (target / 'vercel.json').write_text('{"framework":"fastapi"}\n')

@@ -82,3 +82,43 @@ class ExecutionTests(unittest.TestCase):
             data['authorization_source'] = 'model_says_approved'
             self.assertEqual(client.post('/api/execute', json=data,
                                         headers={'Authorization': 'Bearer test-secret'}).status_code, 422)
+
+class MixedExecutionTests(ExecutionTests):
+    def setUp(self):
+        super().setUp()
+        from dataclasses import replace
+        self.executor.settings = replace(self.executor.settings,
+            google=replace(self.executor.settings.google, enable_tasks=True))
+        self.gateway.load.return_value['credentials']['scopes'] = ['https://www.googleapis.com/auth/tasks']
+
+    def mixed(self):
+        request = plan()
+        from backend.schemas import Activity
+        request.activities.insert(0, Activity(id='todo', type='task', title='Submit essay', category='academics'))
+        return request
+
+    def test_mixed_plan_preserves_original_positions_for_retry_ids(self):
+        from backend.schemas import ExecuteResponse, ActivityStatus
+        def task_result(settings, gateway, request, *, action_indexes):
+            self.assertEqual(action_indexes, [0])
+            return ExecuteResponse(results=[request.activities[0].model_copy(update={
+                'status': ActivityStatus.completed, 'external_id': 'task-id'})], success=True, whatsapp_reply='Added task')
+        with patch('backend.integrations.google.task_execution.execute_tasks', side_effect=task_result):
+            response = self.executor.execute(self.mixed())
+        self.assertTrue(response.success)
+        self.assertEqual([item.id for item in response.results], ['todo', 'activity-one'])
+        self.assertEqual(self.calendar.execute.call_args.args[0].action_id, 'whatsapp:SM-one:1')
+
+    def test_mixed_conflict_never_creates_tasks(self):
+        self.calendar.list_events.return_value = [{'id': 'other', 'start': {'dateTime': '2026-10-20T14:30:00-04:00'},
+                                                  'end': {'dateTime': '2026-10-20T16:00:00-04:00'}}]
+        with patch('backend.integrations.google.task_execution.execute_tasks') as tasks:
+            response = self.executor.execute(self.mixed())
+        self.assertFalse(response.success)
+        tasks.assert_not_called()
+
+    def test_invalid_mixed_task_prevents_calendar_writes(self):
+        request = self.mixed()
+        request.activities[0].due_date = 'not-a-date'
+        self.assertFalse(self.executor.execute(request).success)
+        self.calendar.execute.assert_not_called()
