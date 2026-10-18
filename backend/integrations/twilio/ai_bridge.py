@@ -1,10 +1,13 @@
+import re
+from backend.profile import preferred_name
 from backend.db.models import Plan
 from backend.integrations.twilio.onboarding import welcome_link
 
 
 WELCOME = (
-    "Welcome to TimeSlice 👋\n"
+    "Welcome to Offload 👋\n"
     "Your personal task and calendar assistant.\n\n"
+    "What should I call you? Reply: Call me Ojal (using your name), or add it in the dashboard.\n\n"
     "Tell me what you need to get done, even if it's a messy brain dump. "
     "Include dates and times when you know them.\n\n"
     "Try: Study Java tomorrow from 7 to 9 PM, and remind me to apply for an internship Friday."
@@ -17,7 +20,7 @@ def is_greeting(body: str) -> bool:
     # or "help" must still reach the AI rather than being silently discarded.
     normalized = " ".join(body.casefold().split()).strip(" !.,?👋")
     return normalized in {"hi", "hello", "hey", "hi timeslice", "hello timeslice",
-                          "hey timeslice", "start", "help", "menu"}
+                          "hey timeslice", "hi offload", "hello offload", "hey offload", "start", "help", "menu"}
 
 
 def read_plan(payload: dict, key: str) -> Plan:
@@ -42,14 +45,28 @@ class AIBridge:
         self.client, self.settings = client, settings
 
     async def process(self, user, message: dict) -> Plan:
+        naming = re.fullmatch(r"(?:call me|my name is)\s+(.+)", message.get('body', '').strip(), flags=re.IGNORECASE)
+        if naming:
+            try:
+                name = preferred_name(naming[1])
+            except ValueError:
+                return Plan(reply="What should I call you? Send just your name after ‘Call me’, like ‘Call me Ojal’. Keep scheduling requests in a separate message.")
+            key = self.settings.supabase_service_role_key.get_secret_value()
+            headers = {'apikey': key}
+            if not key.startswith('sb_secret_'):
+                headers['Authorization'] = f'Bearer {key}'
+            response = await self.client.put(f"{self.settings.supabase_url.rstrip('/')}/auth/v1/admin/users/{user.id}",
+                headers=headers, json={'user_metadata': {'offload_name': name}})
+            response.raise_for_status()
+            return Plan(reply=f"Hey, {name}! 👋 I’m Offload. I’ll remember your name. Send me your tasks or plans whenever you’re ready.")
         if is_greeting(message.get("body", "")):
             if self.settings.dashboard_url:
-                return Plan(reply=welcome_link(self.settings, linked=True))
+                return Plan(reply=welcome_link(self.settings, linked=True, display_name=user.display_name))
             suffix = "What would you like to plan?" if self.settings.ai_base_url else SETUP_PENDING
-            return Plan(reply=f"{WELCOME}\n\n{suffix}")
+            return Plan(reply=f"{'Hey, ' + user.display_name + '! 👋' if user.display_name else WELCOME}\n\n{suffix}")
         if not self.settings.ai_base_url:
             if self.settings.dashboard_url:
-                return Plan(reply=f"{welcome_link(self.settings, linked=True)}\n\n{SETUP_PENDING}")
+                return Plan(reply=f"{welcome_link(self.settings, linked=True, display_name=user.display_name)}\n\n{SETUP_PENDING}")
             return Plan(reply=f"{WELCOME}\n\n{SETUP_PENDING}")
         if not self.settings.ai_service_token.get_secret_value():
             raise RuntimeError("AI_SERVICE_TOKEN is required for internal API calls")

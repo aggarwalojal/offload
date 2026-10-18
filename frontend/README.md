@@ -1,6 +1,6 @@
-# TimeSlice frontend
+# Offload frontend
 
-A responsive Next.js App Router dashboard for the TimeSlice hackathon demo.
+A responsive Next.js App Router dashboard for the Offload hackathon demo.
 
 ## Run locally
 

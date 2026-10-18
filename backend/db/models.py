@@ -68,6 +68,7 @@ class Plan(BaseModel):
 
 
 class User(BaseModel):
+    display_name: str | None = None
     id: UUID
     whatsapp_number: str
     timezone: str = "America/New_York"

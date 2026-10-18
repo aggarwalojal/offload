@@ -19,10 +19,11 @@ from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, SecretStr
+from pydantic import BaseModel, SecretStr, field_validator
 import requests
 from google.oauth2.credentials import Credentials
 
+from backend.profile import preferred_name
 from .calendar import CalendarAPIError, CalendarValidationError, GoogleCalendarService
 from .config import CALENDAR_SCOPES, TASKS_SCOPES, GOOGLE_TOKEN_URI, GoogleConfig, get_google_config
 from .tasks import GoogleTasksService, TaskAPIError
@@ -94,7 +95,7 @@ class SupabaseGateway:
             if not user.get("email_confirmed_at"):
                 raise ValueError
         except (KeyError, ValueError, TypeError):
-            raise HTTPException(401, "A verified TimeSlice account is required.") from None
+            raise HTTPException(401, "A verified Offload account is required.") from None
         return user
 
     def load(self, user_id: str) -> dict | None:
@@ -144,11 +145,20 @@ class ProviderTokens(BaseModel):
     refresh_token: SecretStr | None = None
 
 
+class ProfileName(BaseModel):
+    display_name: str
+
+    @field_validator('display_name')
+    @classmethod
+    def valid_name(cls, value):
+        return preferred_name(value)
+
+
 def create_public_app(settings: PublicSettings | None = None) -> FastAPI:
     settings = settings or PublicSettings.from_env()
     gateway = SupabaseGateway(settings)
     oauth = GoogleOAuthService(settings.google, required_scopes=CALENDAR_SCOPES)
-    app = FastAPI(title="TimeSlice Calendar API", docs_url=None, redoc_url=None, openapi_url=None)
+    app = FastAPI(title="Offload Calendar API", docs_url=None, redoc_url=None, openapi_url=None)
 
     @app.exception_handler(RequestValidationError)
     async def invalid_request(request, error):
@@ -166,7 +176,7 @@ def create_public_app(settings: PublicSettings | None = None) -> FastAPI:
     def current_user(request: Request):
         header = request.headers.get("authorization", "")
         if not header.startswith("Bearer ") or len(header) > 16384:
-            raise HTTPException(401, "Please sign in to TimeSlice.")
+            raise HTTPException(401, "Please sign in to Offload.")
         return gateway.user(header[7:])
 
     def credentials_for(user: dict):
@@ -195,7 +205,13 @@ def create_public_app(settings: PublicSettings | None = None) -> FastAPI:
         tasks_connected = connected and settings.google.enable_tasks and set(TASKS_SCOPES).issubset(scopes)
         return {"connected": calendar_connected, "calendar_connected": calendar_connected,
                 "tasks_connected": tasks_connected, "tasks_enabled": settings.google.enable_tasks,
-                "email": user.get("email")}
+                "email": user.get("email"), "display_name": user.get("user_metadata", {}).get("offload_name")}
+
+    @app.put('/api/google/profile')
+    def profile(body: ProfileName, request: Request, user=Depends(current_user)):
+        gateway._call('PUT', '/auth/v1/user', user_token=request.headers['authorization'][7:],
+                      json={'data': {'offload_name': body.display_name}})
+        return {'display_name': body.display_name}
 
     @app.put("/api/google/connection")
     def connect(tokens: ProviderTokens, user=Depends(current_user)):
@@ -214,7 +230,7 @@ def create_public_app(settings: PublicSettings | None = None) -> FastAPI:
             google_user, token_info = profile.json(), info.json()
             subject = google_subject(user)
             if google_user.get("sub") != subject or token_info.get("aud") != settings.google.client_id:
-                raise HTTPException(403, "Google account does not match your TimeSlice account.")
+                raise HTTPException(403, "Google account does not match your Offload account.")
             granted = token_info.get("scope", "").split()
             required = TASKS_SCOPES if tokens.service == 'tasks' else CALENDAR_SCOPES
             if tokens.service == 'tasks' and not settings.google.enable_tasks:

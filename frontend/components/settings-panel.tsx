@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { CalendarDays, ListTodo, LogOut, ShieldCheck, Sparkles } from 'lucide-react';
+import { ProfileName } from './profile-name';
 import { WhatsAppConnection } from './whatsapp-connection';
 import type { useCalendar } from '@/lib/use-calendar';
 import { Panel } from './ui';
@@ -46,6 +47,7 @@ export function SettingsPanel({ calendar, connectionMessage }: { calendar: Calen
   }
   const status = calendar.connection;
   return <>
+    {status.signed_in && <ProfileName key={status.display_name ?? "new"} name={status.display_name} onSaved={calendar.refresh} />}
     {connectionMessage && messages[connectionMessage] && <p className="connection-result" role="status">{messages[connectionMessage]}</p>}
     <div className="settings-grid">
       <Panel className="preferences-panel"><div className="panel-heading"><div><h2>Your day, your way</h2><p>Preferences for a little less planning.</p></div><Sparkles size={18} /></div>

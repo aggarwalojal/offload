@@ -35,7 +35,7 @@ async def incoming(request: Request):
     link = re.fullmatch(r"LINK\s+([A-Za-z0-9_-]{32})", body.strip(), flags=re.IGNORECASE)
     if link and not opt_out:
         outcome = await request.app.state.repo.rpc("consume_whatsapp_link", p_hash=code_hash(link[1]), p_from=sender)
-        reply = ("WhatsApp connected to TimeSlice ✅\nSend your tasks here. Nothing was scheduled by linking your account."
+        reply = ("WhatsApp connected to Offload ✅\nWhat should I call you? Reply “Call me Ojal” using your name, or add it in the dashboard. Then send your tasks. Nothing was scheduled by linking your account."
                  if outcome == "linked" else
                  "Could not link this number. The link may have expired or an account is already linked. "
                  "Open your dashboard and select Connect WhatsApp again. Existing account links were kept.")

@@ -44,13 +44,14 @@ export default function Dashboard() {
           <button className="offload-connect-button" onClick={() => setSettingsOpen(!settingsOpen)} aria-expanded={settingsOpen}>{settingsOpen ? "Back to dashboard" : "Connect Google"}</button>
           <div className="profile-pill">
             <span className="profile-avatar">{live ? "You" : "O"}</span>
-            <span className="profile-name">{calendar.connection.email ?? "Demo workspace"}</span>
+            <span className="profile-name">{calendar.connection.display_name ? `Hey, ${calendar.connection.display_name}` : live ? "Add your name in Settings" : "Demo workspace"}</span>
           </div>
         </div>
       </header>
 
       {/* 2. Main Workspace: Apple Screen Time (Left) + WhatsApp Phone (Right) */}
       <main className="offload-main">
+        {live && !settingsOpen && !calendar.connection.display_name && <div className="offload-name-prompt"><span>What should Offload call you?</span><button className="connect-google" onClick={() => setSettingsOpen(true)}>Add your name</button></div>}
         {settingsOpen ? <SettingsPanel calendar={calendar} connectionMessage={params.get('connection')} /> : <>
         <div className="offload-data-status" role="status">{calendar.loading ? 'Checking your Google connections…' : live ? (calendar.connection.connected ? 'Your Google Calendar · Live schedule' : 'Connect Google Calendar to load your schedule.') : 'Demo workspace · Connect Google to see your own schedule.'}<button onClick={() => setSettingsOpen(true)}>Manage connections</button></div>
         {live && <p className="offload-sync-status" role="status">{calendar.refreshing ? 'Refreshing Google…' : calendar.lastUpdated ? `Updated ${calendar.lastUpdated.toLocaleTimeString()} · Refreshes every 15 seconds` : 'Waiting for Google data'} <button disabled={calendar.refreshing} onClick={() => void calendar.refresh()}>Refresh now</button></p>}

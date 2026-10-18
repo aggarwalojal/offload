@@ -93,7 +93,7 @@ class CalendarPlanExecutor:
         record = self.gateway.load(user_id)
         if record is None:
             return _response(activities, ActivityStatus.needs_clarification,
-                             'Nothing was scheduled. Sign in to TimeSlice and connect your Google Calendar first.')
+                             'Nothing was scheduled. Sign in to Offload and connect your Google Calendar first.')
         try:
             credentials = Credentials.from_authorized_user_info({
                 **record['credentials'], 'client_id': self.settings.google.client_id,
@@ -101,7 +101,7 @@ class CalendarPlanExecutor:
             })
         except (ValueError, KeyError):
             return _response(activities, ActivityStatus.needs_clarification,
-                             'Nothing was scheduled. Reconnect Google Calendar in TimeSlice Settings.')
+                             'Nothing was scheduled. Reconnect Google Calendar in Offload Settings.')
         calendar = GoogleCalendarService(user_id=user_id, credentials=credentials, oauth=self.oauth)
         try:
             events = calendar.list_events(start_time=min(slot.start_utc() for slot in slots),
@@ -132,7 +132,7 @@ class CalendarPlanExecutor:
             return ExecuteResponse(results=results, success=success, whatsapp_reply=reply)
         except GoogleReconnectRequired:
             return _response(activities, ActivityStatus.needs_clarification,
-                             'Nothing was scheduled. Reconnect Google Calendar in TimeSlice Settings.')
+                             'Nothing was scheduled. Reconnect Google Calendar in Offload Settings.')
         except CalendarAPIError:
             return _response(activities, ActivityStatus.failed,
                              'Nothing was scheduled. Calendar availability could not be checked; please try again later.')

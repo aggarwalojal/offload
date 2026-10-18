@@ -37,3 +37,21 @@ def test_calendar_only_grant_cannot_read_tasks():
         with TestClient(create_public_app(config)) as client:
             assert client.get('/api/google/tasks', headers={'Authorization': 'Bearer app-token'}).status_code == 409
         service.assert_not_called()
+
+
+def test_name_updates_only_authenticated_users_presentation_metadata():
+    config = settings()
+    with patch('backend.integrations.google.public_app.SupabaseGateway') as gateway:
+        gateway.return_value.user.return_value = user()
+        with TestClient(create_public_app(config)) as client:
+            assert client.put('/api/google/profile', json={'display_name': 'Ojal'}).status_code == 401
+            response = client.put('/api/google/profile', headers={'Authorization': 'Bearer own-session'},
+                json={'display_name': '  Ojal ', 'user_id': 'other-user', 'role': 'admin'})
+            assert response.status_code == 200
+            assert response.json() == {'display_name': 'Ojal'}
+            gateway.return_value._call.assert_called_once_with('PUT', '/auth/v1/user',
+                user_token='own-session', json={'data': {'offload_name': 'Ojal'}})
+            gateway.return_value._call.reset_mock()
+            assert client.put('/api/google/profile', headers={'Authorization': 'Bearer own-session'},
+                json={'display_name': '<script>'}).status_code == 422
+            gateway.return_value._call.assert_not_called()

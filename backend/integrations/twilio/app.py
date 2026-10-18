@@ -25,7 +25,7 @@ def create_app(settings=None, repo=None, client=None):
             if client is None:
                 await app.state.client.aclose()
 
-    app = FastAPI(title="TimeSlice WhatsApp & Database", lifespan=lifespan)
+    app = FastAPI(title="Offload WhatsApp & Database", lifespan=lifespan)
     app.include_router(whatsapp_router)
     app.include_router(dashboard_router)
     app.include_router(onboarding_router)

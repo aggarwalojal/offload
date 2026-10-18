@@ -6,7 +6,7 @@ import type { Activity } from './mock-data';
 
 export type GoogleTask = { external_id: string; title: string; due?: string | null; status: string };
 export type CalendarConnection = {
-  tasks_connected?: boolean; tasks_enabled?: boolean; configured: boolean; signed_in: boolean; connected: boolean; email?: string | null;
+  display_name?: string | null; tasks_connected?: boolean; tasks_enabled?: boolean; configured: boolean; signed_in: boolean; connected: boolean; email?: string | null;
 };
 
 export function useCalendar() {
@@ -28,7 +28,7 @@ export function useCalendar() {
       const status = await response.json();
       if (!response.ok) throw new Error(status.detail || 'Google connections could not be checked.');
       setConnection({ configured: !!status.configured, signed_in: !!status.signed_in, connected: !!status.connected,
-        email: status.email, tasks_connected: !!status.tasks_connected, tasks_enabled: !!status.tasks_enabled });
+        email: status.email, display_name: status.display_name, tasks_connected: !!status.tasks_connected, tasks_enabled: !!status.tasks_enabled });
       if (!status.connected) { setItems([]); setAllDayCount(0); }
       if (!status.tasks_connected) setTasks([]);
       const failures: string[] = [];

@@ -18,12 +18,14 @@ def dashboard_link(settings) -> str:
     return f"{settings.dashboard_url}/?view=settings" if settings.dashboard_url else ""
 
 
-def welcome_link(settings, *, linked: bool = False) -> str:
+def welcome_link(settings, *, linked: bool = False, display_name: str | None = None) -> str:
     instructions = ("Your WhatsApp is linked. Connect Google Calendar and Google Tasks in the dashboard if you haven't already, "
                     "then return here and send your tasks." if linked else
                     "Then select Connect WhatsApp and send its verification message here. "
                     "Return to this chat to send your tasks.")
-    return ("Welcome to TimeSlice 👋\nYour personal task and calendar assistant.\n\n"
+    greeting = f"Hey, {display_name}! 👋" if display_name else "Welcome to Offload 👋"
+    name_prompt = "" if display_name else "What should I call you? Add your name in the dashboard, or once WhatsApp is linked reply “Call me Ojal” using your name.\n\n"
+    return (f"{greeting}\nYour personal task and calendar assistant.\n\n{name_prompt}"
             f"Open your dashboard to connect Google Calendar and Google Tasks:\n{dashboard_link(settings)}\n\n"
             f"{instructions}\nNothing has been scheduled by this welcome message.")
 
@@ -31,7 +33,7 @@ def welcome_link(settings, *, linked: bool = False) -> str:
 async def verified_identity(request: Request) -> UUID:
     authorization = request.headers.get("authorization", "")
     if not authorization.startswith("Bearer "):
-        raise HTTPException(401, "Sign in to TimeSlice first")
+        raise HTTPException(401, "Sign in to Offload first")
     settings = request.app.state.settings
     response = await request.app.state.client.get(
         f"{settings.supabase_url.rstrip('/')}/auth/v1/user",
@@ -39,7 +41,7 @@ async def verified_identity(request: Request) -> UUID:
                  "Authorization": authorization},
     )
     if response.status_code in {401, 403}:
-        raise HTTPException(401, "Sign in to TimeSlice again")
+        raise HTTPException(401, "Sign in to Offload again")
     response.raise_for_status()
     try:
         identity = response.json()

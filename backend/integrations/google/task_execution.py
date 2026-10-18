@@ -31,12 +31,12 @@ def execute_tasks(settings, gateway, request, *, action_indexes=None):
         return _response(activities, ActivityStatus.needs_clarification, 'Clarify the task title, category, or due date first.')
     record = gateway.load(user_id)
     if not record:
-        return _response(activities, ActivityStatus.needs_clarification, 'Connect Google Calendar and Tasks in TimeSlice Settings first.')
+        return _response(activities, ActivityStatus.needs_clarification, 'Connect Google Calendar and Tasks in Offload Settings first.')
     try:
         credentials = Credentials.from_authorized_user_info({**record['credentials'],
             'client_id': settings.google.client_id, 'client_secret': settings.google.client_secret, 'token_uri': GOOGLE_TOKEN_URI})
     except (ValueError, KeyError):
-        return _response(activities, ActivityStatus.needs_clarification, 'Reconnect Google in TimeSlice Settings.')
+        return _response(activities, ActivityStatus.needs_clarification, 'Reconnect Google in Offload Settings.')
     if not credentials.has_scopes(TASKS_SCOPES):
         return _response(activities, ActivityStatus.needs_clarification, 'Reconnect Google and approve Google Tasks permission.')
     service = GoogleTasksService(user_id=user_id, credentials=credentials, oauth=GoogleOAuthService(settings.google, required_scopes=TASKS_SCOPES))

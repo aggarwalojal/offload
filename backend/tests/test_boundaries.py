@@ -250,7 +250,7 @@ async def test_welcome_does_not_execute_or_invent_activities(settings,user,greet
     settings.ai_service_token = SecretStr("internal")
     client = SimpleNamespace(post=AsyncMock())
     plan = await AIBridge(client,settings).process(user,{"body":greeting})
-    assert "Welcome to TimeSlice" in plan.reply
+    assert "Welcome to Offload" in plan.reply
     assert "task and calendar assistant" in plan.reply
     assert ("not connected" in plan.reply) is (not connected)
     assert plan.actions==[]
