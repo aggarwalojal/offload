@@ -6,7 +6,7 @@ import { useCalendar } from '@/lib/use-calendar';
 import { liveAnalytics } from '@/lib/calendar-data';
 import { SettingsPanel } from './settings-panel';
 import { Calendar, MessageCircle, Sparkles } from 'lucide-react';
-import { activities as demoActivities, categories, timeLabel } from '@/lib/mock-data';
+import { activities as demoActivities, categories, timeLabel, type Activity, type Category } from '@/lib/mock-data';
 import { ScreenTimeView } from './screen-time-view';
 import { WhatsAppPhone } from './whatsapp-phone';
 import { CategoryBadge, Logo } from './ui';
@@ -15,9 +15,45 @@ export default function Dashboard() {
   const calendar = useCalendar();
   const params = useSearchParams();
   const [settingsOpen, setSettingsOpen] = useState(params.get('view') === 'settings');
+  const [demoItems, setDemoItems] = useState<Activity[]>(demoActivities);
   const live = calendar.connection.signed_in;
   const analytics = live ? liveAnalytics(calendar.items) : undefined;
-  const activities = analytics?.todayItems ?? demoActivities;
+  const activities = analytics?.todayItems ?? demoItems;
+
+  const handleSimulatedMessage = (text: string) => {
+    const lower = text.toLowerCase();
+    let cat: Category = 'career';
+    let title = text.replace(/tomorrow|today|yesterday|at \d+|\d+ ?(am|pm)|next \w+/gi, '').trim();
+    if (!title) title = text;
+
+    if (lower.includes('delta') || lower.includes('kickoff') || lower.includes('project') || lower.includes('migration') || lower.includes('client') || lower.includes('work') || lower.includes('hcm')) {
+      cat = 'career';
+    } else if (lower.includes('sync') || lower.includes('meeting') || lower.includes('call') || lower.includes('sponsor') || lower.includes('team') || lower.includes('1:1') || lower.includes('catchup')) {
+      cat = 'social';
+    } else if (lower.includes('payroll') || lower.includes('filing') || lower.includes('compliance') || lower.includes('tax') || lower.includes('audit') || lower.includes('admin') || lower.includes('ops') || lower.includes('report')) {
+      cat = 'admin';
+    } else if (lower.includes('workout') || lower.includes('gym') || lower.includes('health') || lower.includes('run') || lower.includes('break') || lower.includes('wellness') || lower.includes('walk') || lower.includes('lunch')) {
+      cat = 'health';
+    } else if (lower.includes('training') || lower.includes('study') || lower.includes('learn') || lower.includes('course') || lower.includes('read') || lower.includes('cert') || lower.includes('skill')) {
+      cat = 'academics';
+    }
+
+    const now = new Date();
+    const start = new Date(now.getTime() + 15 * 60000);
+    const end = new Date(start.getTime() + 60 * 60000);
+
+    const newActivity: Activity = {
+      id: 'demo-' + Date.now(),
+      title: title.charAt(0).toUpperCase() + title.slice(1),
+      category: cat,
+      start_time: start.toISOString(),
+      end_time: end.toISOString(),
+      source: 'whatsapp',
+      phase: 'upcoming',
+    };
+
+    setDemoItems(prev => [newActivity, ...prev]);
+  };
 
   return (
     <div className="offload-app">
@@ -59,7 +95,7 @@ export default function Dashboard() {
         <div className="offload-grid">
           {/* Left Column: Apple Screen Time Dashboard */}
           <section className="offload-analytics-col">
-            <ScreenTimeView analytics={analytics} />
+            <ScreenTimeView analytics={analytics} activities={activities} />
           </section>
 
           {/* Right Column: Interactive WhatsApp Widget & Today's Schedule */}
@@ -77,7 +113,7 @@ export default function Dashboard() {
               </div>
 
               {/* The Phone Simulator */}
-              {live ? <div className="live-whatsapp-guide"><h3>Text it. Offload it.</h3><p>Connect your Google services, then verify your WhatsApp number in Settings. Return to your WhatsApp chat and send your plans.</p><p>For example: “Client kickoff with Delta tomorrow 2–3 PM and review Vantage HCM migration checklist by Friday.”</p><button className="connect-google" onClick={() => setSettingsOpen(true)}>Manage WhatsApp &amp; Google</button><small>Once the agent confirms your message, Calendar events and Tasks refresh here automatically.</small></div> : <WhatsAppPhone />}
+              {live ? <div className="live-whatsapp-guide"><h3>Text it. Offload it.</h3><p>Connect your Google services, then verify your WhatsApp number in Settings. Return to your WhatsApp chat and send your plans.</p><p>For example: “Client kickoff with Delta tomorrow 2–3 PM and review Vantage HCM migration checklist by Friday.”</p><button className="connect-google" onClick={() => setSettingsOpen(true)}>Manage WhatsApp &amp; Google</button><small>Once the agent confirms your message, Calendar events and Tasks refresh here automatically.</small></div> : <WhatsAppPhone onMessageSent={handleSimulatedMessage} />}
 
               {live && <section className="schedule-queue-card" aria-label="Google Tasks"><div className="queue-header"><h3>Your Google Tasks</h3><span>{calendar.tasks.length} to-dos</span></div><div className="queue-list">{calendar.connection.tasks_connected ? calendar.tasks.length ? calendar.tasks.map(task => <div className="queue-item" key={task.external_id}><div className="queue-item-left"><div><strong>{task.title}</strong><small>{task.due ? `Due ${task.due.slice(0, 10)}` : 'No due date'}</small></div></div></div>) : <p className="offload-empty">No open tasks. New WhatsApp tasks will appear here after Google sync.</p> : <p className="offload-empty">Connect Google Tasks in Settings to see your to-dos.</p>}</div></section>}
               {/* Today's Synced Schedule Card */}

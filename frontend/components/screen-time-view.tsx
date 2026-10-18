@@ -4,7 +4,7 @@ import type { liveAnalytics } from '@/lib/calendar-data';
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight, Clock, Sparkles, TrendingUp } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { categories, distribution as demoDistribution, formatDuration, weeks as demoWeeks, type Category } from '@/lib/mock-data';
+import { categories, distribution as demoDistribution, durationMinutes, formatDuration, weeks as demoWeeks, type Activity, type Category } from '@/lib/mock-data';
 
 const tooltipStyle = {
   background: '#FFFFFF',
@@ -16,9 +16,52 @@ const tooltipStyle = {
   boxShadow: '0 10px 25px -5px rgba(244, 63, 94, 0.15), 0 2px 6px rgba(0, 0, 0, 0.04)',
 };
 
-export function ScreenTimeView({ analytics }: { analytics?: ReturnType<typeof liveAnalytics> }) {
-  const distribution = analytics?.distribution ?? demoDistribution;
-  const weeks = analytics?.weeks ?? demoWeeks;
+export function ScreenTimeView({
+  analytics,
+  activities: passedActivities,
+}: {
+  analytics?: ReturnType<typeof liveAnalytics>;
+  activities?: Activity[];
+}) {
+  const calculatedDistribution = passedActivities
+    ? categories.map(cat => ({
+        ...cat,
+        minutes: passedActivities
+          .filter(a => a.category === cat.id)
+          .reduce((sum, a) => sum + durationMinutes(a), 0),
+      }))
+    : demoDistribution;
+
+  const distribution = analytics?.distribution ?? calculatedDistribution;
+
+  const dynamicWeeks = passedActivities && !analytics
+    ? demoWeeks.map((w, idx) => {
+        if (idx === 1) {
+          return {
+            ...w,
+            data: w.data.map(d => {
+              if (d.day === 'Sat') {
+                const hoursByCategory: Record<Category, number> = {
+                  career: 0,
+                  social: 0,
+                  admin: 0,
+                  health: 0,
+                  academics: 0,
+                };
+                for (const a of passedActivities) {
+                  hoursByCategory[a.category] = (hoursByCategory[a.category] || 0) + durationMinutes(a) / 60;
+                }
+                return { day: 'Sat', ...hoursByCategory };
+              }
+              return d;
+            }),
+          };
+        }
+        return w;
+      })
+    : demoWeeks;
+
+  const weeks = analytics?.weeks ?? dynamicWeeks;
   const totalMinutes = distribution.reduce((sum, item) => sum + item.minutes, 0);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [weekIndex, setWeekIndex] = useState(1);
