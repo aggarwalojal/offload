@@ -1,6 +1,24 @@
 from backend.db.models import Plan
 
 
+WELCOME = (
+    "Welcome to TimeSlice 👋\n"
+    "Your personal task and calendar assistant.\n\n"
+    "Tell me what you need to get done, even if it's a messy brain dump. "
+    "Include dates and times when you know them.\n\n"
+    "Try: Study Java tomorrow from 7 to 9 PM, and remind me to apply for an internship Friday."
+)
+SETUP_PENDING = "Scheduling is not connected yet, so nothing was scheduled."
+
+
+def is_greeting(body: str) -> bool:
+    # Only a whole-message greeting is handled locally. A task containing "hi"
+    # or "help" must still reach the AI rather than being silently discarded.
+    normalized = " ".join(body.casefold().split()).strip(" !.,?👋")
+    return normalized in {"hi", "hello", "hey", "hi timeslice", "hello timeslice",
+                          "hey timeslice", "start", "help", "menu"}
+
+
 def read_plan(payload: dict, key: str) -> Plan:
     """Map Jia's current response to Eva's validated model at this boundary.
 
@@ -23,8 +41,11 @@ class AIBridge:
         self.client, self.settings = client, settings
 
     async def process(self, user, message: dict) -> Plan:
+        if is_greeting(message.get("body", "")):
+            suffix = "What would you like to plan?" if self.settings.ai_base_url else SETUP_PENDING
+            return Plan(reply=f"{WELCOME}\n\n{suffix}")
         if not self.settings.ai_base_url:
-            return Plan(reply="TimeSlice's AI service is not connected yet. Nothing was scheduled. Please try again once it is connected.")
+            return Plan(reply=f"{WELCOME}\n\n{SETUP_PENDING}")
         if not self.settings.ai_service_token.get_secret_value():
             raise RuntimeError("AI_SERVICE_TOKEN is required for internal API calls")
         if not message["body"].strip():
