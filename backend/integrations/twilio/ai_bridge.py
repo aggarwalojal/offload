@@ -112,8 +112,11 @@ class AIBridge:
             if action.status not in {"completed", "failed", "needs_clarification"}:
                 raise ValueError("Execution must return terminal outcomes or clarification")
         # Confirmation comes from validated outcomes, not an untrusted prose claim.
-        result.reply = "\n".join(
+        lines = [
             f"{'Added' if a.status == 'completed' else 'Needs clarification' if a.status == 'needs_clarification' else 'Could not add'}: {a.title}"
             for a in result.actions
-        )[:1500]
+        ]
+        if any(a.status in {'needs_clarification', 'failed'} for a in result.actions) and payload.get('whatsapp_reply'):
+            lines.append(f"\n{payload['whatsapp_reply']}")
+        result.reply = "\n".join(lines)[:1500]
         return result
