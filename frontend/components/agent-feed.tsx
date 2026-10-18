@@ -6,9 +6,9 @@ import type { Category } from '@/lib/mock-data';
 import { CategoryBadge, Panel } from './ui';
 
 const examples: { message: string; title: string; category: Category; time: string }[] = [
-  { message: 'Block an hour for the gym at 4 today', title: 'Afternoon gym session', category: 'health', time: 'Today, 4:00 – 5:00 PM' },
-  { message: 'Study ML tomorrow from 9 to 11', title: 'Machine learning study', category: 'academics', time: 'Tomorrow, 9:00 – 11:00 AM' },
-  { message: 'Coffee with Sarah Friday from 2 to 3', title: 'Coffee with Sarah', category: 'social', time: 'Friday, 2:00 – 3:00 PM' },
+  { message: 'Delta kickoff workshop tomorrow from 2 to 4 PM', title: 'Delta · Client Kickoff Workshop', category: 'career', time: 'Tomorrow, 2:00 – 4:00 PM' },
+  { message: 'Review Vantage HCM tenant migration checklist by Thursday', title: 'Vantage HCM Migration Review', category: 'admin', time: 'Thursday, 10:00 – 11:30 AM' },
+  { message: 'Executive sponsor alignment call Friday from 1 to 2 PM', title: 'Executive Sponsor Alignment', category: 'social', time: 'Friday, 1:00 – 2:00 PM' },
 ];
 
 export function AgentFeed() {

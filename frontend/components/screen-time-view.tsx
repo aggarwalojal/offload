@@ -36,12 +36,12 @@ export function ScreenTimeView({ analytics }: { analytics?: ReturnType<typeof li
             <Clock size={20} className="text-pink-400" />
           </div>
           <div>
-            <span className="screentime-caption">TODAY’S OFFLOAD ENERGY</span>
+            <span className="screentime-caption">TODAY’S SCHEDULED WORKLOAD</span>
             <div className="screentime-hero-stat">
               <h1>{formatDuration(totalMinutes)}</h1>
               <span className="screentime-trend-pill">
                 <TrendingUp size={13} />
-                {analytics ? 'Calendar time' : '+14% from avg'}
+                {analytics ? 'Calendar time' : '+14% from target'}
               </span>
             </div>
           </div>
@@ -91,7 +91,7 @@ export function ScreenTimeView({ analytics }: { analytics?: ReturnType<typeof li
           <div className="screentime-weekly-header">
             <div>
               <h3>Weekly Distribution</h3>
-              <p>Daily hours across Academics, Career, Social, Health, and Admin</p>
+              <p>Daily workload across Implementation, Compliance, Stakeholders, and Enablement</p>
             </div>
             <div className="screentime-week-picker">
               <button
@@ -155,7 +155,7 @@ export function ScreenTimeView({ analytics }: { analytics?: ReturnType<typeof li
 
         {/* 5. Most Used / Categories Breakdown (Apple Screen Time app list style) */}
         <div className="screentime-breakdown-section">
-          <h3>Energy Breakdown</h3>
+          <h3>Workload & Focus Allocation</h3>
           <div className="screentime-list">
             {rankedCategories.map((cat, rank) => {
               const pct = Math.round((totalMinutes ? cat.minutes / totalMinutes : 0) * 100);
@@ -190,15 +190,15 @@ export function ScreenTimeView({ analytics }: { analytics?: ReturnType<typeof li
           </div>
         </div>
 
-        {/* 6. Vibe Check / Balance Insight */}
+        {/* 6. Enterprise Workload & Capacity Insight */}
         <div className="screentime-vibe-card">
           <div className="vibe-sparkle">
             <Sparkles size={18} />
           </div>
           <div>
-            <h4>{analytics ? 'Your time, in perspective' : 'Vibe Check: Balanced Flow 🌸'}</h4>
+            <h4>{analytics ? 'Your time, in perspective' : 'Implementation Velocity & Capacity: Optimal ⚡'}</h4>
             <p>
-              {analytics ? 'Your own timed Calendar events power these charts. All-day events are excluded; uncategorized events appear under Admin. Tasks are separate from planned hours.' : 'Sample time distribution for a balanced day of work, friends, and health.'}
+              {analytics ? 'Your own timed Calendar events power these charts. All-day events are excluded; uncategorized events appear under Compliance & Payroll. Tasks are separate from planned hours.' : 'Balanced time distribution across client deployments, compliance validation, and executive sponsor alignment.'}
             </p>
           </div>
         </div>

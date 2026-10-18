@@ -13,17 +13,17 @@ export function DistributionChart() {
     <Panel className="distribution-panel">
       <div className="panel-heading"><div><h2>A day in slices</h2><p>Where your time is going today.</p></div><span className="subtle-pill">Today</span></div>
       <div className="donut-layout">
-        <div className="donut-container" role="img" aria-label="Today's planned time: Academics 4 hours, Career 2 hours 30 minutes, Social 1 hour 30 minutes, Health 1 hour, Admin 30 minutes.">
+        <div className="donut-container" role="img" aria-label="Today's planned workload: Client Implementation, Compliance, Stakeholders, Product Enablement, and Deep Work.">
           <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 230, height: 230 }}>
             <PieChart><Pie data={distribution} dataKey="minutes" nameKey="name" innerRadius="74%" outerRadius="96%" paddingAngle={4} cornerRadius={5} stroke="none" startAngle={90} endAngle={-270}>
               {distribution.map(c => <Cell key={c.id} fill={c.color} />)}
             </Pie><Tooltip formatter={v => [formatDuration(Number(v)), 'Planned time']} contentStyle={tooltipStyle} itemStyle={{ color: '#fff' }} /></PieChart>
           </ResponsiveContainer>
-          <div className="donut-center"><span>TOTAL PLANNED</span><strong>9<span>h</span> 30<span>m</span></strong><small><i />A well-rounded day</small></div>
+          <div className="donut-center"><span>TOTAL PLANNED</span><strong>9<span>h</span> 30<span>m</span></strong><small><i />Workload Allocated</small></div>
         </div>
         <div className="distribution-legend">{distribution.map(c => <div key={c.id}><i style={{ background: c.color }} /><span>{c.name}</span><strong>{formatDuration(c.minutes)}</strong><small>{Math.round(c.minutes / totalMinutes * 100)}%</small></div>)}</div>
       </div>
-      <div className="chart-insight"><Sparkles size={15} /><p>A little of everything. <span>You’re making room for balance.</span></p></div>
+      <div className="chart-insight"><Sparkles size={15} /><p>Client Commitments Balanced. <span>Deliverables and stakeholder syncs fully aligned.</span></p></div>
     </Panel>
   );
 }

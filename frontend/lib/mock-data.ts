@@ -2,11 +2,11 @@ export type Category = 'academics' | 'career' | 'social' | 'health' | 'admin';
 export type View = 'Dashboard' | 'Activity' | 'Settings';
 
 export const categories: { id: Category; name: string; color: string; icon: string }[] = [
-  { id: 'academics', name: 'Knowledge & Training', color: '#8B5CF6', icon: '📚' },
   { id: 'career', name: 'Client Implementation', color: '#F43F5E', icon: '💼' },
-  { id: 'social', name: 'Stakeholder Sync', color: '#EC4899', icon: '🤝' },
-  { id: 'health', name: 'Focus & Wellness', color: '#10B981', icon: '🏃' },
   { id: 'admin', name: 'Compliance & Payroll', color: '#0284C7', icon: '📝' },
+  { id: 'social', name: 'Stakeholder Alignment', color: '#EC4899', icon: '🤝' },
+  { id: 'academics', name: 'Product Enablement', color: '#8B5CF6', icon: '🎓' },
+  { id: 'health', name: 'Deep Work & Focus', color: '#10B981', icon: '⚡' },
 ];
 
 export type Activity = {
@@ -22,13 +22,13 @@ export type Activity = {
 export const demoDate = 'Saturday, October 17, 2026';
 
 export const initialActivities: Activity[] = [
-  { id: 'a1', title: 'Delta Airlines · Kickoff sync', category: 'career', start_time: '2026-10-17T09:00:00-04:00', end_time: '2026-10-17T10:30:00-04:00', source: 'whatsapp', phase: 'completed' },
+  { id: 'a1', title: 'Delta Airlines · Implementation sync', category: 'career', start_time: '2026-10-17T09:00:00-04:00', end_time: '2026-10-17T10:30:00-04:00', source: 'whatsapp', phase: 'completed' },
   { id: 'a2', title: 'Vantage HCM migration architecture review', category: 'career', start_time: '2026-10-17T11:00:00-04:00', end_time: '2026-10-17T12:30:00-04:00', source: 'whatsapp', phase: 'completed' },
-  { id: 'a3', title: 'Lunch & debrief with implementation team', category: 'social', start_time: '2026-10-17T13:00:00-04:00', end_time: '2026-10-17T14:00:00-04:00', source: 'calendar', phase: 'completed' },
-  { id: 'a4', title: 'Focus block · Payroll tax compliance validation', category: 'admin', start_time: '2026-10-17T14:30:00-04:00', end_time: '2026-10-17T16:00:00-04:00', source: 'whatsapp', phase: 'upcoming' },
-  { id: 'a5', title: 'ADP client training module walkthrough', category: 'academics', start_time: '2026-10-17T16:30:00-04:00', end_time: '2026-10-17T17:30:00-04:00', source: 'whatsapp', phase: 'upcoming' },
-  { id: 'a6', title: 'Evening wellness break & reset', category: 'health', start_time: '2026-10-17T18:00:00-04:00', end_time: '2026-10-17T19:00:00-04:00', source: 'whatsapp', phase: 'upcoming' },
-  { id: 'a7', title: 'Review open tenant action items & risks', category: 'admin', start_time: '2026-10-17T19:30:00-04:00', end_time: '2026-10-17T20:00:00-04:00', source: 'whatsapp', phase: 'upcoming' },
+  { id: 'a3', title: 'Executive sponsor alignment call', category: 'social', start_time: '2026-10-17T13:00:00-04:00', end_time: '2026-10-17T14:00:00-04:00', source: 'calendar', phase: 'completed' },
+  { id: 'a4', title: 'Deep focus block · Payroll tax compliance validation', category: 'admin', start_time: '2026-10-17T14:30:00-04:00', end_time: '2026-10-17T16:00:00-04:00', source: 'whatsapp', phase: 'upcoming' },
+  { id: 'a5', title: 'ADP Workforce Now enablement & release notes review', category: 'academics', start_time: '2026-10-17T16:30:00-04:00', end_time: '2026-10-17T17:30:00-04:00', source: 'whatsapp', phase: 'upcoming' },
+  { id: 'a6', title: 'Focus & reset block', category: 'health', start_time: '2026-10-17T18:00:00-04:00', end_time: '2026-10-17T18:30:00-04:00', source: 'whatsapp', phase: 'upcoming' },
+  { id: 'a7', title: 'Open tenant risks & deployment checklist audit', category: 'admin', start_time: '2026-10-17T19:00:00-04:00', end_time: '2026-10-17T19:45:00-04:00', source: 'whatsapp', phase: 'upcoming' },
 ];
 
 export const activities = initialActivities;
@@ -58,22 +58,22 @@ export const busiestCategory = [...distribution].sort((a, b) => b.minutes - a.mi
 
 export type WeekDay = { day: string } & Record<Category, number>;
 const thisWeek: WeekDay[] = [
-  { day: 'Mon', academics: 3, career: 2, social: 1, health: 1, admin: 0.5 },
-  { day: 'Tue', academics: 4, career: 2.5, social: 1, health: 0.5, admin: 1 },
-  { day: 'Wed', academics: 2.5, career: 3, social: 1.5, health: 1, admin: 0.5 },
-  { day: 'Thu', academics: 1.5, career: 1, social: 2.5, health: 1.5, admin: 0.5 },
-  { day: 'Fri', academics: 3, career: 2, social: 2, health: 1, admin: 0.5 },
-  { day: 'Sat', academics: 4, career: 2.5, social: 1.5, health: 1, admin: 0.5 },
-  { day: 'Sun', academics: 2, career: 0.5, social: 1.5, health: 1, admin: 1 },
+  { day: 'Mon', career: 4.5, admin: 2, social: 1.5, academics: 1, health: 1 },
+  { day: 'Tue', career: 5, admin: 2.5, social: 1, academics: 0.5, health: 1 },
+  { day: 'Wed', career: 4, admin: 3, social: 1.5, academics: 1, health: 0.5 },
+  { day: 'Thu', career: 4.5, admin: 2, social: 2, academics: 1, health: 1 },
+  { day: 'Fri', career: 3.5, admin: 2.5, social: 2, academics: 0.5, health: 1 },
+  { day: 'Sat', career: 0.5, admin: 0.5, social: 0, academics: 0, health: 0 },
+  { day: 'Sun', career: 0, admin: 0, social: 0, academics: 0, health: 0 },
 ];
 
 const previousWeek: WeekDay[] = thisWeek.map(day => ({
   day: day.day,
-  academics: day.academics * 0.9,
   career: day.career * 0.9,
-  social: day.social * 0.9,
-  health: day.health * 0.9,
   admin: day.admin * 0.9,
+  social: day.social * 0.9,
+  academics: day.academics * 0.9,
+  health: day.health * 0.9,
 }));
 
 export const weeks = [
