@@ -102,3 +102,29 @@ transaction across Google products. Uncertain Tasks writes require reconciliatio
 The first unlinked message intentionally is not scheduled; resend plans after
 verification. A healthy ngrok `/health` proves the web server only, not the worker,
 Gemini configuration, shared execution token, or the Twilio webhook setting.
+
+## Fast ngrok demo command
+
+On the laptop running the WhatsApp service, install both sets of dependencies:
+
+```sh
+python -m pip install -r backend/requirements.txt -r backend/requirements-whatsapp.txt
+python scripts/run_demo.py
+```
+
+This validates `backend/.env`, checks that `AI_SERVICE_TOKEN` matches the hosted
+Google API using an empty invalid plan (no writes), starts the AI parser on port
+8002 if needed, and starts the WhatsApp worker. Keep that terminal, the existing
+WhatsApp web server, and ngrok open. Ctrl+C stops only the processes this command
+started. It does not host services permanently or configure the Twilio console.
+
+The WhatsApp web server itself must have
+`DASHBOARD_URL=https://timeslice-dashboard.vercel.app` in `backend/.env` and be
+restarted after changing it. The runner configures its worker subprocess to use
+that same dashboard and the hosted Google execution URL. `GEMINI_API_KEY`,
+Twilio credentials, shared Supabase credentials, and the exact public Twilio
+webhook URL must already be present privately in `backend/.env`.
+
+Run `python scripts/run_demo.py --check` for a configuration-only check. Passing
+that check does not prove Gemini or Twilio message delivery works; send one real
+WhatsApp message after account linking to verify the complete demo.
