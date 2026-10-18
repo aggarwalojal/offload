@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'offload. — Screen Time for your real life',
-  description: 'Brain dump your chaotic thoughts on WhatsApp. We turn them into calendar blocks and visual Screen Time analytics.',
+  title: 'Offload — Actionable Intelligence for Implementation Teams',
+  description: 'Turn fragmented client conversations, meetings, and brain dumps into actionable calendar commitments, tasks, and real-time execution analytics.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

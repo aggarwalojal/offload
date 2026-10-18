@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Interactive CLI for TimeSlice AI Agent.
+Interactive CLI for Offload AI Agent.
 Allows testing WhatsApp brain dumps locally with real-time AI parsing and terminal visualization.
 """
 
@@ -29,23 +29,24 @@ DIM = "\033[2m"
 RESET = "\033[0m"
 
 CATEGORY_ICONS = {
-    "academics": f"{BLUE}📚 Academics{RESET}",
-    "career": f"{PURPLE}💼 Career{RESET}",
-    "social": f"{GREEN}🎉 Social{RESET}",
-    "health": f"{CYAN}🏃 Health{RESET}",
-    "admin": f"{YELLOW}📝 Admin{RESET}",
+    "academics": f"{BLUE}📚 Training & Knowledge{RESET}",
+    "career": f"{PURPLE}💼 Client Implementation{RESET}",
+    "social": f"{GREEN}🤝 Stakeholder Sync{RESET}",
+    "health": f"{CYAN}🧘 Focus & Wellness{RESET}",
+    "admin": f"{YELLOW}📝 Compliance & Payroll{RESET}",
 }
 
 SAMPLE_PROMPTS = [
-    "I need to study Java for two hours tonight, apply to an internship tomorrow, and go to my club meeting Friday at 7 PM.",
-    "Hit the gym tomorrow at 8 AM for an hour, finish MATH 1554 homework by Thursday, and grab boba with Sarah at 4 PM on Saturday.",
-    "Pay my rent tomorrow, schedule dentist appointment next Monday at 10 AM, and prep for the Amazon technical interview tonight from 6 to 8.",
+    "Client kick-off meeting with Delta tomorrow from 2 to 3 PM, finish the Q4 payroll filing checklist by Thursday, and review Vantage HCM migration risks.",
+    "Sync with the ADP benefits team Friday at 10 AM, submit revised implementation timeline by end of day, and prepare tenant configuration notes.",
+    "Executive sponsor review with Home Depot next Monday at 2 PM, follow up on payroll tax discrepancies by Wednesday, and schedule team debrief for tomorrow morning.",
 ]
 
 
 def print_banner():
     print(f"\n{BOLD}{CYAN}===================================================={RESET}")
-    print(f"{BOLD}{CYAN}        🍕 TimeSlice — AI Agent Terminal Tester     {RESET}")
+    print(f"{BOLD}{CYAN}        ⚡ Offload — AI Agent Terminal Tester        {RESET}")
+    print(f"{BOLD}{CYAN}      ADP Client Implementation Track Solution      {RESET}")
     print(f"{BOLD}{CYAN}===================================================={RESET}")
     print(f"{DIM}Type a chaotic brain dump, or 'sample' for examples, or 'exit' to quit.{RESET}\n")
 
@@ -104,7 +105,7 @@ def main():
         try:
             user_input = input(f"{BOLD}{GREEN}💬 Brain Dump >> {RESET}").strip()
         except (KeyboardInterrupt, EOFError):
-            print("\nExiting TimeSlice CLI. Goodbye!")
+            print("\nExiting Offload CLI. Goodbye!")
             break
 
         if not user_input:

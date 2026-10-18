@@ -1,5 +1,5 @@
 """
-FastAPI Server for TimeSlice AI Agent.
+FastAPI Server for Offload AI Agent.
 Exposes endpoints for natural language message parsing and plan execution.
 """
 
@@ -24,8 +24,8 @@ from backend.ai.planner import validate_and_plan
 from backend.integrations.google.execution import create_execution_router
 
 app = FastAPI(
-    title="TimeSlice AI Agent API",
-    description="Parses natural language WhatsApp brain dumps into structured calendar events and tasks.",
+    title="Offload AI Agent API",
+    description="Parses natural language WhatsApp brain dumps into structured calendar events and tasks for ADP client implementation teams.",
     version="1.0.0",
 )
 
@@ -45,7 +45,7 @@ def health_check():
     has_key = bool(os.getenv("GEMINI_API_KEY"))
     return {
         "status": "healthy",
-        "service": "TimeSlice AI Agent",
+        "service": "Offload AI Agent",
         "gemini_configured": has_key,
     }
 

@@ -71,7 +71,7 @@ def main():
     try:
         try:
             response = requests.get(env['AI_BASE_URL'] + '/health', timeout=2)
-            reusable = response.ok and response.json().get('service') == 'TimeSlice AI Agent' and response.json().get('gemini_configured')
+            reusable = response.ok and response.json().get('service') in ('TimeSlice AI Agent', 'Offload AI Agent') and response.json().get('gemini_configured')
         except (requests.RequestException, ValueError):
             reusable = False
         if not reusable:

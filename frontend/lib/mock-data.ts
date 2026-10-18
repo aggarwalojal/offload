@@ -2,11 +2,11 @@ export type Category = 'academics' | 'career' | 'social' | 'health' | 'admin';
 export type View = 'Dashboard' | 'Activity' | 'Settings';
 
 export const categories: { id: Category; name: string; color: string; icon: string }[] = [
-  { id: 'academics', name: 'Academics', color: '#8B5CF6', icon: '📚' },
-  { id: 'career', name: 'Career', color: '#F43F5E', icon: '💼' },
-  { id: 'social', name: 'Social', color: '#EC4899', icon: '🎉' },
-  { id: 'health', name: 'Health', color: '#10B981', icon: '🏃' },
-  { id: 'admin', name: 'Admin', color: '#0284C7', icon: '📝' },
+  { id: 'academics', name: 'Knowledge & Training', color: '#8B5CF6', icon: '📚' },
+  { id: 'career', name: 'Client Implementation', color: '#F43F5E', icon: '💼' },
+  { id: 'social', name: 'Stakeholder Sync', color: '#EC4899', icon: '🤝' },
+  { id: 'health', name: 'Focus & Wellness', color: '#10B981', icon: '🏃' },
+  { id: 'admin', name: 'Compliance & Payroll', color: '#0284C7', icon: '📝' },
 ];
 
 export type Activity = {
@@ -22,13 +22,13 @@ export type Activity = {
 export const demoDate = 'Saturday, October 17, 2026';
 
 export const initialActivities: Activity[] = [
-  { id: 'a1', title: 'Deep work · Machine learning', category: 'academics', start_time: '2026-10-17T09:00:00-04:00', end_time: '2026-10-17T11:00:00-04:00', source: 'whatsapp', phase: 'completed' },
-  { id: 'a2', title: 'Product design internship prep', category: 'career', start_time: '2026-10-17T11:30:00-04:00', end_time: '2026-10-17T13:00:00-04:00', source: 'whatsapp', phase: 'completed' },
-  { id: 'a3', title: 'Lunch with Sarah & Alex', category: 'social', start_time: '2026-10-17T13:00:00-04:00', end_time: '2026-10-17T14:00:00-04:00', source: 'calendar', phase: 'completed' },
-  { id: 'a4', title: 'Afternoon gym session', category: 'health', start_time: '2026-10-17T16:00:00-04:00', end_time: '2026-10-17T17:00:00-04:00', source: 'whatsapp', phase: 'upcoming' },
-  { id: 'a5', title: 'CS 1331 Java Project', category: 'academics', start_time: '2026-10-17T19:00:00-04:00', end_time: '2026-10-17T21:00:00-04:00', source: 'whatsapp', phase: 'upcoming' },
-  { id: 'a6', title: 'Catch up with Mom', category: 'social', start_time: '2026-10-17T21:00:00-04:00', end_time: '2026-10-17T21:30:00-04:00', source: 'whatsapp', phase: 'upcoming' },
-  { id: 'a7', title: 'Inbox & weekly planning', category: 'admin', start_time: '2026-10-17T21:30:00-04:00', end_time: '2026-10-17T22:00:00-04:00', source: 'whatsapp', phase: 'upcoming' },
+  { id: 'a1', title: 'Delta Airlines · Kickoff sync', category: 'career', start_time: '2026-10-17T09:00:00-04:00', end_time: '2026-10-17T10:30:00-04:00', source: 'whatsapp', phase: 'completed' },
+  { id: 'a2', title: 'Vantage HCM migration architecture review', category: 'career', start_time: '2026-10-17T11:00:00-04:00', end_time: '2026-10-17T12:30:00-04:00', source: 'whatsapp', phase: 'completed' },
+  { id: 'a3', title: 'Lunch & debrief with implementation team', category: 'social', start_time: '2026-10-17T13:00:00-04:00', end_time: '2026-10-17T14:00:00-04:00', source: 'calendar', phase: 'completed' },
+  { id: 'a4', title: 'Focus block · Payroll tax compliance validation', category: 'admin', start_time: '2026-10-17T14:30:00-04:00', end_time: '2026-10-17T16:00:00-04:00', source: 'whatsapp', phase: 'upcoming' },
+  { id: 'a5', title: 'ADP client training module walkthrough', category: 'academics', start_time: '2026-10-17T16:30:00-04:00', end_time: '2026-10-17T17:30:00-04:00', source: 'whatsapp', phase: 'upcoming' },
+  { id: 'a6', title: 'Evening wellness break & reset', category: 'health', start_time: '2026-10-17T18:00:00-04:00', end_time: '2026-10-17T19:00:00-04:00', source: 'whatsapp', phase: 'upcoming' },
+  { id: 'a7', title: 'Review open tenant action items & risks', category: 'admin', start_time: '2026-10-17T19:30:00-04:00', end_time: '2026-10-17T20:00:00-04:00', source: 'whatsapp', phase: 'upcoming' },
 ];
 
 export const activities = initialActivities;
@@ -93,18 +93,18 @@ export const sampleChats: ChatMessage[] = [
   {
     id: 'c1',
     sender: 'user',
-    text: 'I need to study Java for two hours tonight, apply to an internship tomorrow, and go to my club meeting Friday at 7 PM.',
+    text: 'Client kick-off meeting with Delta tomorrow from 2 to 3 PM, finish the Q4 payroll filing checklist by Thursday, and review Vantage HCM migration risks.',
     time: '4:47 PM',
   },
   {
     id: 'c2',
     sender: 'bot',
-    text: "Offloaded! ✨ Synced 'Study Java' (2 hrs) to Academics, 'Apply to internship' to Career Tasks, and 'Club meeting' to Social. Your Academics energy just increased by 2 hours! 🌸",
+    text: "Offloaded! ✨ Synced 'Client kick-off meeting with Delta' (2–3 PM) to Client Implementation, 'Q4 payroll filing checklist' to Compliance Tasks, and 'Review Vantage HCM migration risks' to Project Deliverables. Your schedule and commitments are locked in! ⚡",
     time: '4:47 PM',
     items: [
-      { title: 'Study Java', category: 'academics', time: 'Tonight, 7:00 – 9:00 PM' },
-      { title: 'Apply to internship', category: 'career', time: 'Due tomorrow' },
-      { title: 'Club meeting', category: 'social', time: 'Friday, 7:00 – 8:00 PM' },
+      { title: 'Client kick-off meeting with Delta', category: 'career', time: 'Tomorrow, 2:00 – 3:00 PM' },
+      { title: 'Q4 payroll filing checklist', category: 'admin', time: 'Due Thursday' },
+      { title: 'Review Vantage HCM migration risks', category: 'career', time: 'Action item' },
     ],
   },
 ];

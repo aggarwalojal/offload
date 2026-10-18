@@ -290,3 +290,19 @@ async def test_briefing_user_timezone_and_daily_dedupe_key(user):
     await enqueue_briefings(repo, datetime(2026, 10, 17, 12, 0, tzinfo=timezone.utc))
     assert repo.rpc.call_args.kwargs["p_key"] == f"morning:{user.id}:2026-10-17"
     assert repo.rpc.call_args.kwargs["p_kind"] == "morning"
+
+
+@pytest.mark.asyncio
+async def test_lineup_enqueued_at_workday_hours(user):
+    user.morning_enabled = True
+    repo = SimpleNamespace(rows=AsyncMock(side_effect=[[user.model_dump(mode="json")], []]),
+                           activities=AsyncMock(return_value=[
+                               event(title="Delta Kickoff", start_time="2026-10-17T15:00:00-04:00", end_time="2026-10-17T16:00:00-04:00")
+                           ]), rpc=AsyncMock())
+    # 15:00 UTC = 11:00 EDT (America/New_York)
+    await enqueue_briefings(repo, datetime(2026, 10, 17, 15, 0, tzinfo=timezone.utc))
+    assert repo.rpc.await_count == 1
+    assert repo.rpc.call_args.kwargs["p_key"] == f"lineup:{user.id}:2026-10-17:11"
+    assert repo.rpc.call_args.kwargs["p_kind"] == "reply"
+    assert "Delta Kickoff" in repo.rpc.call_args.kwargs["p_body"]
+

@@ -6,11 +6,11 @@ from backend.integrations.twilio.onboarding import welcome_link
 
 WELCOME = (
     "Welcome to Offload 👋\n"
-    "Your personal task and calendar assistant.\n\n"
+    "Your personal task and calendar assistant for client implementation.\n\n"
     "What should I call you? Reply: Call me Ojal (using your name), or add it in the dashboard.\n\n"
-    "Tell me what you need to get done, even if it's a messy brain dump. "
+    "Tell me what you need to get done, even if it's a messy client brain dump or meeting notes. "
     "Include dates and times when you know them.\n\n"
-    "Try: Study Java tomorrow from 7 to 9 PM, and remind me to apply for an internship Friday."
+    "Try: Client sync with Delta tomorrow 2 to 3 PM, and remind me to verify payroll tax filings by Friday."
 )
 SETUP_PENDING = "Scheduling is not connected yet, so nothing was scheduled."
 
