@@ -57,6 +57,25 @@ export function ScreenTimeView({
             }),
           };
         }
+        if (idx === 2) {
+          return {
+            ...w,
+            data: w.data.map(d => {
+              const matched = passedActivities.filter(a => {
+                const dayName = new Date(a.start_time).toLocaleDateString('en-US', { weekday: 'short' });
+                return dayName === d.day;
+              });
+              if (matched.length > 0) {
+                const hoursByCategory: Record<Category, number> = { ...d };
+                for (const a of matched) {
+                  hoursByCategory[a.category] = (hoursByCategory[a.category] || 0) + durationMinutes(a) / 60;
+                }
+                return { day: d.day, ...hoursByCategory };
+              }
+              return d;
+            }),
+          };
+        }
         return w;
       })
     : demoWeeks;
@@ -143,15 +162,15 @@ export function ScreenTimeView({
               <button
                 aria-label="Previous week"
                 disabled={weekIndex === 0}
-                onClick={() => setWeekIndex(0)}
+                onClick={() => setWeekIndex(i => Math.max(0, i - 1))}
               >
                 <ChevronLeft size={15} />
               </button>
-              <span>{week.label}</span>
+              <span>{week?.label}</span>
               <button
                 aria-label="Next week"
-                disabled={weekIndex === 1}
-                onClick={() => setWeekIndex(1)}
+                disabled={weekIndex >= weeks.length - 1}
+                onClick={() => setWeekIndex(i => Math.min(weeks.length - 1, i + 1))}
               >
                 <ChevronRight size={15} />
               </button>

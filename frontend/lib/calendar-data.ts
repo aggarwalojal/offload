@@ -42,7 +42,7 @@ export function liveAnalytics(items: Activity[], now = new Date()) {
   const totals = categoryMinutes(items, today, tomorrow);
   const distribution = categories.map(c => ({ ...c, minutes: totals[c.id] }));
   const monday = new Date(today); monday.setDate(today.getDate() - (today.getDay() + 6) % 7);
-  const weeks = [-1, 0].map(offset => {
+  const weeks = [-1, 0, 1].map(offset => {
     const first = new Date(monday); first.setDate(monday.getDate() + offset * 7);
     const data: WeekDay[] = Array.from({ length: 7 }, (_, i) => {
       const start = new Date(first); start.setDate(first.getDate() + i);
@@ -62,6 +62,6 @@ export function liveAnalytics(items: Activity[], now = new Date()) {
 export function calendarRange(now = new Date()) {
   const start = new Date(now); start.setHours(0, 0, 0, 0);
   start.setDate(start.getDate() - (start.getDay() + 6) % 7 - 7);
-  const end = new Date(start); end.setDate(start.getDate() + 14);
+  const end = new Date(start); end.setDate(start.getDate() + 21);
   return { start_time: start.toISOString(), end_time: end.toISOString() };
 }

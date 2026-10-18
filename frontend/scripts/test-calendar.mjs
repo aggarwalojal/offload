@@ -34,7 +34,7 @@ try {
   assert.equal(normalized[0].category, 'admin');
   const range = calendarRange(new Date('2026-10-17T12:00:00-04:00'));
   assert.equal(range.start_time, '2026-10-05T04:00:00.000Z');
-  assert.equal(range.end_time, '2026-10-19T04:00:00.000Z');
+  assert.equal(range.end_time, '2026-10-26T04:00:00.000Z');
   assert.equal(liveAnalytics([crossing, first], new Date('2026-10-17T12:00:00-04:00')).todayItems.length, 2);
   const dstStart = new Date('2026-11-01T00:00:00-04:00');
   const dstEnd = new Date('2026-11-02T00:00:00-05:00');

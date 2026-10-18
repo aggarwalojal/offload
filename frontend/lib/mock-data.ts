@@ -76,9 +76,20 @@ const previousWeek: WeekDay[] = thisWeek.map(day => ({
   health: day.health * 0.9,
 }));
 
+const nextWeek: WeekDay[] = [
+  { day: 'Mon', career: 4.0, admin: 2.0, social: 2.5, academics: 0.5, health: 1.0 },
+  { day: 'Tue', career: 4.5, admin: 2.5, social: 1.5, academics: 0.5, health: 1.0 },
+  { day: 'Wed', career: 3.5, admin: 2.0, social: 3.0, academics: 1.0, health: 0.5 },
+  { day: 'Thu', career: 5.0, admin: 2.0, social: 1.5, academics: 0.5, health: 1.0 },
+  { day: 'Fri', career: 3.0, admin: 3.0, social: 1.0, academics: 0.5, health: 1.0 },
+  { day: 'Sat', career: 0.0, admin: 0.0, social: 0.0, academics: 0.0, health: 0.0 },
+  { day: 'Sun', career: 0.0, admin: 0.0, social: 0.0, academics: 0.0, health: 0.0 },
+];
+
 export const weeks = [
   { label: 'Oct 5 – 11', data: previousWeek },
   { label: 'Oct 12 – 18', data: thisWeek },
+  { label: 'Oct 19 – 25', data: nextWeek },
 ];
 
 export type ChatMessage = {

@@ -23,38 +23,58 @@ export default function Dashboard() {
   const activities = analytics?.todayItems ?? demoItems;
 
   const handleSimulatedMessage = (text: string) => {
-    const lower = text.toLowerCase();
-    let cat: Category = 'career';
-    let title = text.replace(/tomorrow|today|yesterday|at \d+|\d+ ?(am|pm)|next \w+/gi, '').trim();
-    if (!title) title = text;
+    const rawClauses = text.split(/,(?![^()]*\))|\band\b/i).map(s => s.trim()).filter(Boolean);
+    const clauses = rawClauses.length > 0 ? rawClauses : [text];
+    const newItems: Activity[] = [];
 
-    if (lower.includes('delta') || lower.includes('kickoff') || lower.includes('project') || lower.includes('migration') || lower.includes('client') || lower.includes('work') || lower.includes('hcm')) {
-      cat = 'career';
-    } else if (lower.includes('sync') || lower.includes('meeting') || lower.includes('call') || lower.includes('sponsor') || lower.includes('team') || lower.includes('1:1') || lower.includes('catchup')) {
-      cat = 'social';
-    } else if (lower.includes('payroll') || lower.includes('filing') || lower.includes('compliance') || lower.includes('tax') || lower.includes('audit') || lower.includes('admin') || lower.includes('ops') || lower.includes('report')) {
-      cat = 'admin';
-    } else if (lower.includes('workout') || lower.includes('gym') || lower.includes('health') || lower.includes('run') || lower.includes('break') || lower.includes('wellness') || lower.includes('walk') || lower.includes('lunch')) {
-      cat = 'health';
-    } else if (lower.includes('training') || lower.includes('study') || lower.includes('learn') || lower.includes('course') || lower.includes('read') || lower.includes('cert') || lower.includes('skill')) {
-      cat = 'academics';
+    for (const clause of clauses) {
+      const lower = clause.toLowerCase();
+      let cat: Category = 'career';
+      let title = clause.replace(/tomorrow|today|yesterday|at \d+|\d+ ?(am|pm)|next \w+|by \w+/gi, '').trim();
+      if (!title) title = clause;
+
+      if (lower.includes('delta') || lower.includes('kickoff') || lower.includes('project') || lower.includes('migration') || lower.includes('client') || lower.includes('work') || lower.includes('hcm')) {
+        cat = 'career';
+      } else if (lower.includes('sync') || lower.includes('meeting') || lower.includes('call') || lower.includes('sponsor') || lower.includes('team') || lower.includes('1:1') || lower.includes('catchup') || lower.includes('alignment')) {
+        cat = 'social';
+      } else if (lower.includes('payroll') || lower.includes('filing') || lower.includes('compliance') || lower.includes('tax') || lower.includes('audit') || lower.includes('admin') || lower.includes('ops') || lower.includes('report') || lower.includes('checklist')) {
+        cat = 'admin';
+      } else if (lower.includes('workout') || lower.includes('gym') || lower.includes('health') || lower.includes('run') || lower.includes('break') || lower.includes('wellness') || lower.includes('walk') || lower.includes('lunch')) {
+        cat = 'health';
+      } else if (lower.includes('training') || lower.includes('study') || lower.includes('learn') || lower.includes('course') || lower.includes('read') || lower.includes('cert') || lower.includes('skill')) {
+        cat = 'academics';
+      }
+
+      // Resolve dates for upcoming week
+      let start = new Date(Date.now() + 15 * 60000);
+      let end = new Date(Date.now() + 75 * 60000);
+
+      if (lower.includes('tomorrow') || lower.includes('monday') || lower.includes('mon')) {
+        // Monday Oct 19, 1:00 PM – 2:00 PM
+        start = new Date('2026-10-19T13:00:00-04:00');
+        end = new Date('2026-10-19T14:00:00-04:00');
+      } else if (lower.includes('wednesday') || lower.includes('wed')) {
+        // Wednesday Oct 21, 10:00 AM – 11:00 AM
+        start = new Date('2026-10-21T10:00:00-04:00');
+        end = new Date('2026-10-21T11:00:00-04:00');
+      } else if (lower.includes('friday') || lower.includes('fri')) {
+        // Friday Oct 23, 2:00 PM – 3:30 PM
+        start = new Date('2026-10-23T14:00:00-04:00');
+        end = new Date('2026-10-23T15:30:00-04:00');
+      }
+
+      newItems.push({
+        id: 'demo-' + Math.random().toString(36).substring(2, 9),
+        title: title.charAt(0).toUpperCase() + title.slice(1),
+        category: cat,
+        start_time: start.toISOString(),
+        end_time: end.toISOString(),
+        source: 'whatsapp',
+        phase: 'upcoming',
+      });
     }
 
-    const now = new Date();
-    const start = new Date(now.getTime() + 15 * 60000);
-    const end = new Date(start.getTime() + 60 * 60000);
-
-    const newActivity: Activity = {
-      id: 'demo-' + Date.now(),
-      title: title.charAt(0).toUpperCase() + title.slice(1),
-      category: cat,
-      start_time: start.toISOString(),
-      end_time: end.toISOString(),
-      source: 'whatsapp',
-      phase: 'upcoming',
-    };
-
-    setDemoItems(prev => [newActivity, ...prev]);
+    setDemoItems(prev => [...newItems, ...prev]);
   };
 
   return (
