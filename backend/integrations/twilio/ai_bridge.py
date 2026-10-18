@@ -1,4 +1,5 @@
 from backend.db.models import Plan
+from backend.integrations.twilio.onboarding import welcome_link
 
 
 WELCOME = (
@@ -42,9 +43,13 @@ class AIBridge:
 
     async def process(self, user, message: dict) -> Plan:
         if is_greeting(message.get("body", "")):
+            if self.settings.dashboard_url:
+                return Plan(reply=welcome_link(self.settings, linked=True))
             suffix = "What would you like to plan?" if self.settings.ai_base_url else SETUP_PENDING
             return Plan(reply=f"{WELCOME}\n\n{suffix}")
         if not self.settings.ai_base_url:
+            if self.settings.dashboard_url:
+                return Plan(reply=f"{welcome_link(self.settings, linked=True)}\n\n{SETUP_PENDING}")
             return Plan(reply=f"{WELCOME}\n\n{SETUP_PENDING}")
         if not self.settings.ai_service_token.get_secret_value():
             raise RuntimeError("AI_SERVICE_TOKEN is required for internal API calls")

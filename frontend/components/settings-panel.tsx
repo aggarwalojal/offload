@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { CalendarDays, ListTodo, LogOut, MessageCircle, ShieldCheck, Sparkles } from 'lucide-react';
+import { CalendarDays, ListTodo, LogOut, ShieldCheck, Sparkles } from 'lucide-react';
+import { WhatsAppConnection } from './whatsapp-connection';
 import type { useCalendar } from '@/lib/use-calendar';
 import { Panel } from './ui';
 
@@ -56,7 +57,7 @@ export function SettingsPanel({ calendar, connectionMessage }: { calendar: Calen
         <p className="settings-note">Briefing preferences are previews. Messages aren’t scheduled yet.</p></div>
       </Panel>
       <Panel className="connections-panel"><div className="panel-heading"><div><h2>Your connected world</h2><p>One sign-in. A schedule that’s yours.</p></div></div><div className="settings-content">
-        <div className="connection-row"><span className="feed-icon green"><MessageCircle size={19} /></span><div><h3>WhatsApp</h3><p>Messaging integration coming next.</p></div><span className="subtle-pill">Demo</span></div>
+        <WhatsAppConnection key={status.email ?? 'anonymous'} signedIn={status.signed_in} calendarConnected={status.connected} />
         {([
           { service: 'calendar', title: 'Google Calendar', description: 'Scheduled events and time analytics.', connected: status.connected, enabled: status.configured, Icon: CalendarDays, color: 'blue' },
           { service: 'tasks', title: 'Google Tasks', description: 'To-do items and deadlines.', connected: !!status.tasks_connected, enabled: status.configured && !!status.tasks_enabled, Icon: ListTodo, color: 'green' },

@@ -9,6 +9,7 @@ from backend.db.repository import Repository
 from backend.db.router import router as dashboard_router
 from backend.integrations.twilio.config import Settings
 from backend.integrations.twilio.webhook import router as whatsapp_router
+from backend.integrations.twilio.onboarding import router as onboarding_router
 
 
 def create_app(settings=None, repo=None, client=None):
@@ -27,6 +28,7 @@ def create_app(settings=None, repo=None, client=None):
     app = FastAPI(title="TimeSlice WhatsApp & Database", lifespan=lifespan)
     app.include_router(whatsapp_router)
     app.include_router(dashboard_router)
+    app.include_router(onboarding_router)
 
     @app.exception_handler(httpx.HTTPError)
     async def upstream_error(request: Request, exc):
