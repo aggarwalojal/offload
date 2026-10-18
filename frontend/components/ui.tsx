@@ -6,10 +6,32 @@ export function Panel({ children, className = '' }: { children: ReactNode; class
 }
 
 export function CategoryBadge({ category }: { category: Category }) {
-  const item = categories.find(c => c.id === category)!;
-  return <span className="category-badge" style={{ color: item.color, backgroundColor: `${item.color}15` }}><i style={{ background: item.color }} />{item.name}</span>;
+  const item = categories.find(c => c.id === category);
+  if (!item) return null;
+  return (
+    <span
+      className="category-badge"
+      style={{
+        color: item.color,
+        backgroundColor: `${item.color}1E`,
+        borderColor: `${item.color}44`,
+      }}
+    >
+      <i style={{ background: item.color }} />
+      {item.name}
+    </span>
+  );
 }
 
 export function Logo() {
-  return <span className="logo"><span className="logo-symbol" aria-hidden="true"><i /><i /><i /></span>TimeSlice<span className="logo-period">.</span></span>;
+  return (
+    <span className="logo">
+      <span className="logo-symbol" aria-hidden="true">
+        <i />
+        <i />
+        <i />
+      </span>
+      offload<span className="logo-period">.</span>
+    </span>
+  );
 }

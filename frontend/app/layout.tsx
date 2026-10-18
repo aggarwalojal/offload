@@ -2,10 +2,14 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'TimeSlice — Your time, in perspective',
-  description: 'A little more intentional, every day. Your WhatsApp-powered productivity companion and planned-time dashboard.',
+  title: 'offload. — Screen Time for your real life',
+  description: 'Brain dump your chaotic thoughts on WhatsApp. We turn them into calendar blocks and visual Screen Time analytics.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return <html lang="en"><body>{children}</body></html>;
+  return (
+    <html lang="en">
+      <body>{children}</body>
+    </html>
+  );
 }
