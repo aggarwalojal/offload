@@ -9,10 +9,10 @@ interface WhatsAppPhoneProps {
 }
 
 const PRESET_CHIPS = [
-  'Study Java 2h tonight',
-  'Gym tomorrow at 8 AM',
-  'Dinner with Maya Friday 7pm',
-  'Submit design portfolio tomorrow',
+  'Delta kickoff Thursday 2 PM',
+  'Review Vantage HCM migration',
+  'Q4 payroll filing due Friday',
+  'Client sponsor sync Monday 10 AM',
 ];
 
 export function WhatsAppPhone({ onMessageSent }: WhatsAppPhoneProps) {
@@ -41,19 +41,19 @@ export function WhatsAppPhone({ onMessageSent }: WhatsAppPhoneProps) {
 
     // Simulate bot intelligent reply
     setTimeout(() => {
-      let botText = "Offloaded! ✨ Synced to your schedule. Your balance just updated! 🌸";
+      let botText = "Offloaded! ✨ Synced to your schedule and commitment tracker! ⚡";
 
       const lower = text.toLowerCase();
-      if (lower.includes('gym') || lower.includes('workout') || lower.includes('run')) {
-        botText = "Offloaded! 🏃 Added workout session to Health (1h). Great for your energy battery!";
-      } else if (lower.includes('dinner') || lower.includes('sarah') || lower.includes('maya') || lower.includes('party')) {
-        botText = "Offloaded! 🎉 Added to your Social calendar. Work hard, play hard!";
-      } else if (lower.includes('portfolio') || lower.includes('internship') || lower.includes('resume') || lower.includes('interview')) {
-        botText = "Offloaded! 💼 Added to your Career task list for tomorrow. You got this!";
-      } else if (lower.includes('rent') || lower.includes('groceries') || lower.includes('errands') || lower.includes('dentist')) {
-        botText = "Offloaded! 📝 Added to Admin reminders. Out of your head and onto the list!";
-      } else {
-        botText = "Offloaded! 📚 Synced study block to Academics (2 hrs). Keep up the momentum!";
+      if (lower.includes('delta') || lower.includes('kickoff') || lower.includes('migration') || lower.includes('tenant')) {
+        botText = "Offloaded! 💼 Synced to Client Implementation. Commitment locked in your project calendar!";
+      } else if (lower.includes('payroll') || lower.includes('tax') || lower.includes('filing') || lower.includes('compliance')) {
+        botText = "Offloaded! 📝 Added to Compliance & Payroll deliverables. Tracked and prioritized!";
+      } else if (lower.includes('sponsor') || lower.includes('sync') || lower.includes('stakeholder') || lower.includes('debrief')) {
+        botText = "Offloaded! 🤝 Scheduled with Stakeholder Sync. Alignment set!";
+      } else if (lower.includes('training') || lower.includes('cert') || lower.includes('learn') || lower.includes('module')) {
+        botText = "Offloaded! 📚 Added to Knowledge & Training. Continued implementation mastery!";
+      } else if (lower.includes('focus') || lower.includes('reset') || lower.includes('wellness') || lower.includes('break')) {
+        botText = "Offloaded! 🧘 Preserved as Focus & Wellness block. High-impact time protected!";
       }
 
       const botMsg: ChatMessage = {
