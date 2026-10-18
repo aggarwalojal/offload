@@ -3,40 +3,39 @@
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight, Sparkles, TrendingUp } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { categories, distribution, formatDuration, weeks } from '@/lib/mock-data';
+import { categories, distribution, formatDuration, totalMinutes, weeks } from '@/lib/mock-data';
 import { Panel } from './ui';
 
 const tooltipStyle = { background: '#242a3c', border: '1px solid #3b435b', borderRadius: 10, color: '#f4f2ff', fontSize: 12 };
 
-export function DistributionChart({ data = distribution, live = false }: { data?: typeof distribution; live?: boolean }) {
-  const total = data.reduce((sum, c) => sum + c.minutes, 0);
+export function DistributionChart() {
   return (
     <Panel className="distribution-panel">
       <div className="panel-heading"><div><h2>A day in slices</h2><p>Where your time is going today.</p></div><span className="subtle-pill">Today</span></div>
       <div className="donut-layout">
-        <div className="donut-container" role="img" aria-label={data.map(c => `${c.name}: ${formatDuration(c.minutes)}`).join(', ')}>
+        <div className="donut-container" role="img" aria-label="Today's planned time: Academics 4 hours, Career 2 hours 30 minutes, Social 1 hour 30 minutes, Health 1 hour, Admin 30 minutes.">
           <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 230, height: 230 }}>
-            <PieChart><Pie data={data} dataKey="minutes" nameKey="name" innerRadius="74%" outerRadius="96%" paddingAngle={4} cornerRadius={5} stroke="none" startAngle={90} endAngle={-270}>
-              {data.map(c => <Cell key={c.id} fill={c.color} />)}
+            <PieChart><Pie data={distribution} dataKey="minutes" nameKey="name" innerRadius="74%" outerRadius="96%" paddingAngle={4} cornerRadius={5} stroke="none" startAngle={90} endAngle={-270}>
+              {distribution.map(c => <Cell key={c.id} fill={c.color} />)}
             </Pie><Tooltip formatter={v => [formatDuration(Number(v)), 'Planned time']} contentStyle={tooltipStyle} itemStyle={{ color: '#fff' }} /></PieChart>
           </ResponsiveContainer>
-          <div className="donut-center"><span>TOTAL PLANNED</span><strong>{formatDuration(total)}</strong><small><i />{total ? 'Time for what matters' : 'No timed events today'}</small></div>
+          <div className="donut-center"><span>TOTAL PLANNED</span><strong>9<span>h</span> 30<span>m</span></strong><small><i />A well-rounded day</small></div>
         </div>
-        <div className="distribution-legend">{data.map(c => <div key={c.id}><i style={{ background: c.color }} /><span>{c.name}</span><strong>{formatDuration(c.minutes)}</strong><small>{total ? Math.round(c.minutes / total * 100) : 0}%</small></div>)}</div>
+        <div className="distribution-legend">{distribution.map(c => <div key={c.id}><i style={{ background: c.color }} /><span>{c.name}</span><strong>{formatDuration(c.minutes)}</strong><small>{Math.round(c.minutes / totalMinutes * 100)}%</small></div>)}</div>
       </div>
-      <div className="chart-insight"><Sparkles size={15} /><p>{live ? 'Your real Calendar, in perspective.' : 'A little of everything.'} <span>{live ? 'Overlapping time is counted once.' : 'You’re making room for balance.'}</span></p></div>
+      <div className="chart-insight"><Sparkles size={15} /><p>A little of everything. <span>You’re making room for balance.</span></p></div>
     </Panel>
   );
 }
 
-export function WeeklyChart({ liveWeeks }: { liveWeeks?: typeof weeks }) {
+export function WeeklyChart() {
   const [weekIndex, setWeekIndex] = useState(1);
-  const week = (liveWeeks ?? weeks)[weekIndex];
+  const week = weeks[weekIndex];
   const total = week.data.reduce((sum, day) => sum + categories.reduce((n, c) => n + day[c.id], 0), 0) * 60;
   return (
     <Panel className="weekly-panel">
       <div className="panel-heading"><div><h2>Your week at a glance</h2><p>Small slices. A bigger picture.</p></div><div className="week-switcher"><button aria-label="Previous week" disabled={weekIndex === 0} onClick={() => setWeekIndex(0)}><ChevronLeft size={14} /></button><span>{week.label}</span><button aria-label="Next week" disabled={weekIndex === 1} onClick={() => setWeekIndex(1)}><ChevronRight size={14} /></button></div></div>
-      <div className="weekly-summary"><strong>{formatDuration(total)}</strong><span>planned this week</span>{weekIndex === 1 && !liveWeeks && <span className="trend"><TrendingUp size={13} />11.1%<span className="sr-only">more than last week</span></span>}</div>
+      <div className="weekly-summary"><strong>{formatDuration(total)}</strong><span>planned this week</span>{weekIndex === 1 && <span className="trend"><TrendingUp size={13} />11.1%<span className="sr-only">more than last week</span></span>}</div>
       <div className="weekly-chart" role="img" aria-label={`Stacked planned hours by category from Monday to Sunday, ${week.label}. Total ${formatDuration(total)}.`}>
         <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 400, height: 180 }}>
           <BarChart data={week.data} barSize={30} margin={{ left: -22, right: 4, top: 10, bottom: 0 }}>

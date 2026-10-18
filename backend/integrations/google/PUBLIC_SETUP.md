@@ -195,3 +195,17 @@ verification requires the selected scope and rejects a grant that drops an exist
 service. Both services use the same encrypted Google account grant; disconnecting
 the Google account removes both local connections. No extra database migration is
 needed for separate statuses.
+
+## Vercel deployment package
+
+Run `python3 scripts/package_google_api.py /tmp/offload-google-api-production`
+from the repository root. This packages only Python source and requirements;
+local `.env` files and test fixtures are excluded. Link that folder to the
+`timeslice-google-api` Vercel project and deploy it as a FastAPI application.
+Configure backend credentials through Vercel's production secret environment,
+never through source files. The Next.js project's `GOOGLE_BACKEND_URL` must point
+to the production API origin, and `TIMESLICE_SITE_URL` must be its own public URL.
+The API checks Supabase authentication on all connection/event routes; `/health`
+is the only unauthenticated application route. Disable Vercel deployment login
+protection for production API access only if the project has it enabled; the
+application's own authentication remains required.
