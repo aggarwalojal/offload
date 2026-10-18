@@ -11,6 +11,7 @@
    explicitly sending that verification message.
 5. The dashboard shows Connected. The user returns to WhatsApp and sends their
    task again. AI/Google execution uses the now-linked Supabase user UUID.
+   For the live demo, keep the WhatsApp webhook server, worker, and ngrok running.
 
 ## Deployment
 
