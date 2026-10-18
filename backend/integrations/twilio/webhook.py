@@ -2,6 +2,8 @@ import re
 
 from fastapi import APIRouter, HTTPException, Request, Response
 from twilio.request_validator import RequestValidator
+from twilio.twiml.messaging_response import MessagingResponse
+from backend.integrations.twilio.onboarding import code_hash, welcome_link
 
 router = APIRouter()
 
@@ -25,9 +27,24 @@ async def incoming(request: Request):
     if len(body) > 10000:
         raise HTTPException(413, "Message too long")
     # A DB failure returns 503 via the app handler so Twilio may retry. No background
-    # task is relied on for durability. Unlinked/non-opted-in senders are ignored.
+    # task is relied on for durability. Unlinked senders receive setup instructions
+    # when a dashboard is configured; their messages never trigger scheduling.
     opt_out = form.get("OptOutType") == "STOP" or body.strip().upper() in {
         "STOP", "STOPALL", "UNSUBSCRIBE", "CANCEL", "END", "QUIT"
     }
-    await request.app.state.repo.rpc("ingest_whatsapp", p_sid=sid, p_from=sender, p_body=body, p_opt_out=opt_out)
+    link = re.fullmatch(r"LINK\s+([A-Za-z0-9_-]{32})", body.strip(), flags=re.IGNORECASE)
+    if link and not opt_out:
+        outcome = await request.app.state.repo.rpc("consume_whatsapp_link", p_hash=code_hash(link[1]), p_from=sender)
+        reply = ("WhatsApp connected to TimeSlice ✅\nSend your tasks here. Nothing was scheduled by linking your account."
+                 if outcome == "linked" else
+                 "Could not link this number. The link may have expired or an account is already linked. "
+                 "Open your dashboard and select Connect WhatsApp again. Existing account links were kept.")
+        twiml = MessagingResponse()
+        twiml.message(reply)
+        return Response(str(twiml), media_type="application/xml")
+    accepted = await request.app.state.repo.rpc("ingest_whatsapp", p_sid=sid, p_from=sender, p_body=body, p_opt_out=opt_out)
+    if accepted is False and not opt_out and settings.dashboard_url:
+        twiml = MessagingResponse()
+        twiml.message(welcome_link(settings))
+        return Response(str(twiml), media_type="application/xml")
     return Response("<Response></Response>", media_type="application/xml")

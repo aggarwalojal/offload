@@ -7,7 +7,7 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
-    "test": "node scripts/test-calendar.mjs"
+    "test": "node scripts/test-calendar.mjs && node scripts/test-whatsapp.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

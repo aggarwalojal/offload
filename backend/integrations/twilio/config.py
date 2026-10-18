@@ -1,5 +1,6 @@
 from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from urllib.parse import urlsplit
 
 
 class Settings(BaseSettings):
@@ -15,7 +16,19 @@ class Settings(BaseSettings):
     twilio_evening_content_sid: str = ""
     ai_base_url: str = ""
     ai_service_token: SecretStr = SecretStr("")
+    dashboard_url: str = ""
     worker_poll_seconds: float = Field(default=5, ge=1, le=60)
+
+    @field_validator("dashboard_url")
+    @classmethod
+    def dashboard_address(cls, value: str) -> str:
+        if not value:
+            return value
+        parsed = urlsplit(value)
+        if (parsed.scheme != "https" or not parsed.hostname or parsed.username or parsed.password
+                or parsed.query or parsed.fragment or parsed.path not in {"", "/"}):
+            raise ValueError("DASHBOARD_URL must be the HTTPS dashboard origin")
+        return value.rstrip("/")
 
     @field_validator("supabase_url", "twilio_webhook_url")
     @classmethod
