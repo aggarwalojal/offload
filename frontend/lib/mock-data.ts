@@ -2,11 +2,11 @@ export type Category = 'academics' | 'career' | 'social' | 'health' | 'admin';
 export type View = 'Dashboard' | 'Activity' | 'Settings';
 
 export const categories: { id: Category; name: string; color: string; icon: string }[] = [
-  { id: 'academics', name: 'Academics', color: '#B388FF', icon: '📚' },
-  { id: 'career', name: 'Career', color: '#FF758C', icon: '💼' },
-  { id: 'social', name: 'Social', color: '#FF4081', icon: '🎉' },
-  { id: 'health', name: 'Health', color: '#00E676', icon: '🏃' },
-  { id: 'admin', name: 'Admin', color: '#00E5FF', icon: '📝' },
+  { id: 'academics', name: 'Academics', color: '#8B5CF6', icon: '📚' },
+  { id: 'career', name: 'Career', color: '#F43F5E', icon: '💼' },
+  { id: 'social', name: 'Social', color: '#EC4899', icon: '🎉' },
+  { id: 'health', name: 'Health', color: '#10B981', icon: '🏃' },
+  { id: 'admin', name: 'Admin', color: '#0284C7', icon: '📝' },
 ];
 
 export type Activity = {

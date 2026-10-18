@@ -6,12 +6,13 @@ import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxi
 import { categories, distribution, formatDuration, totalMinutes, weeks, type Category } from '@/lib/mock-data';
 
 const tooltipStyle = {
-  background: '#1F1235',
-  border: '1px solid rgba(255, 64, 129, 0.3)',
-  borderRadius: 12,
-  color: '#FFFFFF',
+  background: '#FFFFFF',
+  border: '1px solid #F2E6EC',
+  borderRadius: 14,
+  color: '#191122',
   fontSize: 12,
-  boxShadow: '0 8px 32px rgba(255, 64, 129, 0.2)',
+  fontWeight: 600,
+  boxShadow: '0 10px 25px -5px rgba(244, 63, 94, 0.15), 0 2px 6px rgba(0, 0, 0, 0.04)',
 };
 
 export function ScreenTimeView() {
@@ -110,12 +111,12 @@ export function ScreenTimeView() {
           <div className="screentime-chart-wrapper">
             <ResponsiveContainer width="100%" height={170}>
               <BarChart data={week.data} barSize={26} margin={{ left: -22, right: 0, top: 10, bottom: 0 }}>
-                <CartesianGrid vertical={false} stroke="rgba(255, 255, 255, 0.08)" strokeDasharray="3 3" />
+                <CartesianGrid vertical={false} stroke="#F2E6EC" strokeDasharray="3 3" />
                 <XAxis
                   dataKey="day"
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: '#A398C0', fontSize: 11 }}
+                  tick={{ fill: '#7A6E86', fontSize: 11, fontWeight: 600 }}
                   dy={6}
                 />
                 <YAxis
@@ -124,11 +125,11 @@ export function ScreenTimeView() {
                   tickFormatter={v => `${v}h`}
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: '#7C6F99', fontSize: 10 }}
+                  tick={{ fill: '#9C8EA8', fontSize: 10, fontWeight: 500 }}
                 />
                 <Tooltip
                   contentStyle={tooltipStyle}
-                  cursor={{ fill: 'rgba(255, 64, 129, 0.08)' }}
+                  cursor={{ fill: 'rgba(244, 63, 94, 0.05)' }}
                   formatter={(v, name) => [
                     formatDuration(Number(v) * 60),
                     categories.find(c => c.id === name)?.name ?? name,
