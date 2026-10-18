@@ -26,6 +26,9 @@ export function ScreenTimeView({ analytics }: { analytics?: ReturnType<typeof li
 
   // Sort categories by time spent descending (Apple Screen Time "Most Used" pattern)
   const rankedCategories = [...distribution].sort((a, b) => b.minutes - a.minutes);
+  // Dynamically show categories that have allocated time based on what you input
+  const activeCategories = rankedCategories.filter(cat => cat.minutes > 0);
+  const categoriesToShow = activeCategories.length > 0 ? activeCategories : rankedCategories;
 
   return (
     <div className="screentime-container">
@@ -157,7 +160,7 @@ export function ScreenTimeView({ analytics }: { analytics?: ReturnType<typeof li
         <div className="screentime-breakdown-section">
           <h3>Workload & Focus Allocation</h3>
           <div className="screentime-list">
-            {rankedCategories.map((cat, rank) => {
+            {categoriesToShow.map((cat, rank) => {
               const pct = Math.round((totalMinutes ? cat.minutes / totalMinutes : 0) * 100);
               return (
                 <div key={cat.id} className="screentime-row">
@@ -196,9 +199,9 @@ export function ScreenTimeView({ analytics }: { analytics?: ReturnType<typeof li
             <Sparkles size={18} />
           </div>
           <div>
-            <h4>{analytics ? 'Your time, in perspective' : 'Implementation Velocity & Capacity: Optimal ⚡'}</h4>
+            <h4>{analytics ? 'Your schedule, in perspective' : 'Workload & Capacity Balance: Optimal ⚡'}</h4>
             <p>
-              {analytics ? 'Your own timed Calendar events power these charts. All-day events are excluded; uncategorized events appear under Compliance & Payroll. Tasks are separate from planned hours.' : 'Balanced time distribution across client deployments, compliance validation, and executive sponsor alignment.'}
+              {analytics ? 'Your own timed Calendar events power these charts dynamically based on what you input. All-day events are excluded; uncategorized events appear under Admin & Operations. Tasks are separate from planned hours.' : 'Balanced time distribution dynamically categorized based on what you input across your work deliverables, meetings, operations, personal time, and learning.'}
             </p>
           </div>
         </div>

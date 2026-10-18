@@ -29,11 +29,11 @@ DIM = "\033[2m"
 RESET = "\033[0m"
 
 CATEGORY_ICONS = {
-    "academics": f"{BLUE}📚 Training & Knowledge{RESET}",
-    "career": f"{PURPLE}💼 Client Implementation{RESET}",
-    "social": f"{GREEN}🤝 Stakeholder Sync{RESET}",
-    "health": f"{CYAN}🧘 Focus & Wellness{RESET}",
-    "admin": f"{YELLOW}📝 Compliance & Payroll{RESET}",
+    "career": f"{PURPLE}💼 Work & Projects{RESET}",
+    "social": f"{GREEN}🤝 Meetings & Collaboration{RESET}",
+    "admin": f"{YELLOW}📝 Admin & Operations{RESET}",
+    "health": f"{CYAN}🏃 Personal & Health{RESET}",
+    "academics": f"{BLUE}💡 Learning & Growth{RESET}",
 }
 
 SAMPLE_PROMPTS = [
