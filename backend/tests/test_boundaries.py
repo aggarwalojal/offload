@@ -241,3 +241,26 @@ async def test_jia_branch_contract_and_placeholder_guard(settings,user,execution
             else:
                 assert plan.actions[0].external_id=="google-real-id"
                 assert plan.reply=="Added: Study"
+
+
+@pytest.mark.parametrize("greeting",["Hi", "hello TimeSlice!", "help", "START"])
+@pytest.mark.parametrize("connected",[True,False])
+async def test_welcome_does_not_execute_or_invent_activities(settings,user,greeting,connected):
+    settings.ai_base_url = "https://ai.test" if connected else ""
+    settings.ai_service_token = SecretStr("internal")
+    client = SimpleNamespace(post=AsyncMock())
+    plan = await AIBridge(client,settings).process(user,{"body":greeting})
+    assert "Welcome to TimeSlice" in plan.reply
+    assert "task and calendar assistant" in plan.reply
+    assert ("not connected" in plan.reply) is (not connected)
+    assert plan.actions==[]
+    client.post.assert_not_awaited()
+
+
+async def test_task_containing_greeting_still_reaches_parser(settings,user):
+    settings.ai_base_url,settings.ai_service_token = "https://ai.test",SecretStr("internal")
+    client = SimpleNamespace(post=AsyncMock(side_effect=httpx.ReadTimeout("test parser reached")))
+    with pytest.raises(httpx.ReadTimeout):
+        await AIBridge(client,settings).process(user,{
+            "id":"SM1","body":"Hi, schedule studying tomorrow 7–9 PM","created_at":"2026-10-17T12:00:00Z"})
+    client.post.assert_awaited_once()
